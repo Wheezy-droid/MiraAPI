@@ -32,11 +32,20 @@ internal static class GameOptionsMenuPatch
         {
             ModifiersUpdate(ref num);
         }
+        else if (__instance.name == "CUSTOM TAB 1")
+        {
+            CustomMenuOneUpdate(ref num);
+        }
+        else if (__instance.name == "CUSTOM TAB 2")
+        {
+            CustomMenuTwoUpdate(ref num);
+        }
         else
         {
             var filteredGroups =
                 GameSettingMenuPatches.SelectedMod?.InternalOptionGroups
-                    .Where(x => x.OptionableType == null && !x.ShowInModifiersMenu) ?? [];
+                    .Where(x => x.OptionableType == null &&
+                                !x.ShowInModifiersMenu && x.ParentMenu == MenuCategory.Roles) ?? [];
 
             foreach (var group in filteredGroups)
             {
@@ -99,6 +108,48 @@ internal static class GameOptionsMenuPatch
         }
     }
 
+    private static void CustomMenuOneUpdate(ref float num)
+    {
+        var groups = GameSettingMenuPatches.SelectedMod?.InternalOptionGroups
+            .Where(x => x.ParentMenu == MenuCategory.CustomOne) ?? [];
+
+        foreach (var modGroup in groups)
+        {
+            UpdateGroup(modGroup, ref num);
+        }
+    }
+
+    private static void CustomMenuOneCreate(GameOptionsMenu menu)
+    {
+        var groups = GameSettingMenuPatches.SelectedMod?.InternalOptionGroups
+            .Where(x => x.ParentMenu == MenuCategory.CustomOne) ?? [];
+        foreach (var group in groups)
+        {
+            CreateGroup(menu, group);
+        }
+    }
+
+    private static void CustomMenuTwoUpdate(ref float num)
+    {
+        var groups = GameSettingMenuPatches.SelectedMod?.InternalOptionGroups
+            .Where(x => x.ParentMenu == MenuCategory.CustomTwo) ?? [];
+
+        foreach (var modGroup in groups)
+        {
+            UpdateGroup(modGroup, ref num);
+        }
+    }
+
+    private static void CustomMenuTwoCreate(GameOptionsMenu menu)
+    {
+        var groups = GameSettingMenuPatches.SelectedMod?.InternalOptionGroups
+            .Where(x => x.ParentMenu == MenuCategory.CustomTwo) ?? [];
+        foreach (var group in groups)
+        {
+            CreateGroup(menu, group);
+        }
+    }
+
     private static void ModifiersUpdate(ref float num)
     {
         var groups = GameSettingMenuPatches.SelectedMod?.InternalOptionGroups
@@ -137,9 +188,19 @@ internal static class GameOptionsMenuPatch
             ModifiersCreate(__instance);
             return false;
         }
+        else if (__instance.name == "CUSTOM TAB 1")
+        {
+            CustomMenuOneCreate(__instance);
+            return false;
+        }
+        else if (__instance.name == "CUSTOM TAB 2")
+        {
+            CustomMenuTwoCreate(__instance);
+            return false;
+        }
 
         var filteredGroups = GameSettingMenuPatches.SelectedMod?.InternalOptionGroups
-            .Where(x => x.OptionableType == null && !x.ShowInModifiersMenu) ?? [];
+            .Where(x => x.OptionableType == null && !x.ShowInModifiersMenu && x.ParentMenu == MenuCategory.Roles) ?? [];
 
         foreach (var group in filteredGroups)
         {

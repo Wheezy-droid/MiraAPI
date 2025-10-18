@@ -31,6 +31,17 @@ public partial class MiraApiPlugin : BasePlugin
     /// </summary>
     public static Color DefaultHeaderColor { get; } = new Color32(77, 77, 77, 255);
 
+    /// <summary>
+    /// Gets the name for the first custom category in the game options menu, if any.
+    /// </summary>
+    public static string CustomCategoryMenuNameOne { get; } = "Custom Category 1";
+
+    /// <summary>
+    /// Gets the name for the second custom category in the game options menu, if any.
+    /// </summary>
+    public static string CustomCategoryMenuNameTwo { get; } = "Custom Category 2";
+
+
     private static MiraPluginManager? PluginManager { get; set; }
     internal Harmony Harmony { get; } = new(Id);
 
