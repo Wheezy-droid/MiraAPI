@@ -27,7 +27,7 @@ public static class HudManagerPatches
 
     private static Dictionary<TextMeshPro, int> vanillaKeybindIcons = new();
 
-    internal static List<TextMeshPro> moddedKeybindIcons = new();
+    internal static List<TextMeshPro> ModdedKeybindIcons = new();
 
     /*
     /// <summary>
@@ -90,7 +90,7 @@ public static class HudManagerPatches
             fakeButton.ToggleVisible(true);
             fakeButton.Destroy();
         }
-        moddedKeybindIcons = [];
+        ModdedKeybindIcons = [];
 
         foreach (var button in CustomButtonManager.CustomButtons)
         {
@@ -192,7 +192,7 @@ public static class HudManagerPatches
             btnIcon.Key.text = KeybindUtils.GetKeycodeByActionId(btnIcon.Value).ToString();
             btnIcon.Key.transform.parent.gameObject.SetActive(canSeeBinds);
         }
-        foreach (var btnIcon in moddedKeybindIcons)
+        foreach (var btnIcon in ModdedKeybindIcons)
         {
             btnIcon.transform.parent.gameObject.SetActive(canSeeBinds);
         }

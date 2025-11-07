@@ -217,7 +217,7 @@ public abstract class CustomActionButton
                     new Vector3(MaxUses <= 0 ? -0.4f : 0.4f, 0.45f, -9f)
                 );
             KeybindText = KeybindIcon.transform.GetChild(0).GetComponent<TextMeshPro>();
-            HudManagerPatches.moddedKeybindIcons.Add(KeybindText);
+            HudManagerPatches.ModdedKeybindIcons.Add(KeybindText);
             Button.usesRemainingSprite.transform.localPosition = new(-0.341f, 0.45f, -0.1f);
         }
     }

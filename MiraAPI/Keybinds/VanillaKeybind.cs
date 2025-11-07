@@ -19,6 +19,6 @@ public class VanillaKeybind : BaseKeybind
     public VanillaKeybind(int id)
     {
         RewiredInputAction = KeybindUtils.GetInputActionById(id);
-        Id = RewiredInputAction?.name;
+        Id = RewiredInputAction != null ? RewiredInputAction.name : id.ToString();
     }
 }
