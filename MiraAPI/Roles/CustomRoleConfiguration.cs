@@ -1,4 +1,5 @@
-﻿using AmongUs.GameOptions;
+﻿using System;
+using AmongUs.GameOptions;
 using MiraAPI.Utilities.Assets;
 using UnityEngine;
 
@@ -9,6 +10,16 @@ namespace MiraAPI.Roles;
 /// </summary>
 public record struct CustomRoleConfiguration
 {
+#pragma warning disable S1133
+    [Obsolete("Default constructor is not supported. Please use the constructor that takes an ICustomRole parameter.")]
+#pragma warning restore S1133
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+    public CustomRoleConfiguration()
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+    {
+        throw new NotImplementedException("Default constructor is not supported. Please use the constructor that takes an ICustomRole parameter.");
+    }
+
     /// <summary>
     /// Initializes a new instance of the <see cref="CustomRoleConfiguration"/> struct.
     /// </summary>
