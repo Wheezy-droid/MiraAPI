@@ -110,12 +110,15 @@ internal static class GameSettingMenuPatches
                     {
                         case 3:
                             _modifiersButton?.SelectButton(true);
+                            __instance.MenuDescriptionText.text = SelectedMod != null ? SelectedMod.MiraPlugin.ModifierMenuDescription : "Configure modifiers and their settings here!";
                             break;
                         case 4:
                             _customOneButton?.SelectButton(true);
+                            __instance.MenuDescriptionText.text = SelectedMod != null ? SelectedMod.MiraPlugin.CustomOptionMenuOneDescription : "Apply game settings for this mod!";
                             break;
                         case 5:
                             _customTwoButton?.SelectButton(true);
+                            __instance.MenuDescriptionText.text = SelectedMod != null ? SelectedMod.MiraPlugin.CustomOptionMenuTwoDescription : "Apply game settings for this mod!";
                             break;
                     }
                 }

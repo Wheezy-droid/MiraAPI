@@ -23,6 +23,21 @@ public interface IMiraPlugin
     public virtual string CustomOptionMenuNameTwo => "Custom Category 2";
 
     /// <summary>
+    /// Gets the description for the second custom category in the game options menu, if any.
+    /// </summary>
+    public virtual string ModifierMenuDescription => "Configure modifiers and their settings here!";
+
+    /// <summary>
+    /// Gets the description for the first custom category in the game options menu, if any.
+    /// </summary>
+    public virtual string CustomOptionMenuOneDescription => "Apply game settings for this mod!";
+
+    /// <summary>
+    /// Gets the description for the second custom category in the game options menu, if any.
+    /// </summary>
+    public virtual string CustomOptionMenuTwoDescription => "Apply game settings for this mod!";
+
+    /// <summary>
     /// Gets the BepInEx configuration file for the plugin.
     /// </summary>
     /// <returns>The BepInEx configuration file for the plugin.</returns>
