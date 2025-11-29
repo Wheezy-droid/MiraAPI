@@ -64,9 +64,14 @@ public abstract class CustomActionButton
     public virtual float EffectDuration => 0;
 
     /// <summary>
-    /// Gets the maximum amount of uses the button has. If the button has infinite uses, set to 0.
+    /// Gets a value indicating whether the button has limited uses.
     /// </summary>
-    public virtual int MaxUses => 0;
+    public bool LimitedUses => ZeroIsInfinite ? MaxUses > 0 : MaxUses >= 0;
+
+    /// <summary>
+    /// Gets the maximum number of uses the button has. If the button has infinite uses, set to 0 or -1 based on what value that ZeroIsInfinite is set to.
+    /// </summary>
+    public virtual int MaxUses => ZeroIsInfinite ? 0 : -1;
 
     /// <summary>
     /// Gets the value indicating uses mode.
@@ -87,11 +92,6 @@ public abstract class CustomActionButton
     /// Gets or sets the location of the button on the screen.
     /// </summary>
     public virtual ButtonLocation Location { get; set; } = ButtonLocation.BottomLeft;
-
-    /// <summary>
-    /// Gets a value indicating whether the button has limited uses.
-    /// </summary>
-    public bool LimitedUses => ZeroIsInfinite ? MaxUses > 0 : MaxUses >= 0;
 
     /// <summary>
     /// Gets or sets a value indicating whether limited uses are determined via zero or a negative number of uses.
