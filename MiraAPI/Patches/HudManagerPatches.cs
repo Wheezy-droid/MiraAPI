@@ -128,12 +128,10 @@ public static class HudManagerPatches
         {
             { __instance.KillButton.gameObject, 8 },
             { __instance.UseButton.gameObject, 6 },
-            { __instance.PetButton.gameObject, 6 },
             { __instance.ReportButton.gameObject, 7 },
             { __instance.ImpostorVentButton.gameObject, 50 },
             { __instance.SabotageButton.gameObject, 4 },
             { __instance.AbilityButton.gameObject, 49 },
-            { __instance.SecondaryAbilityButton.gameObject, 8 },
         };
 
         foreach (var kvp in vanillaButtons)
