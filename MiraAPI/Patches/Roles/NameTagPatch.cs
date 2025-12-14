@@ -20,7 +20,7 @@ public static class NameTagPatch
             return false;
         }
 
-        if (PlayerControl.LocalPlayer.Data.Role.IsImpostor && otherPlayerRole.IsImpostor)
+        if (PlayerControl.LocalPlayer.Data?.Role?.IsImpostor == true && otherPlayerRole.IsImpostor)
         {
             return true;
         }
@@ -30,7 +30,7 @@ public static class NameTagPatch
             return true;
         }
 
-        if (!PlayerControl.LocalPlayer || !PlayerControl.LocalPlayer.Data || !PlayerControl.LocalPlayer.Data.Role || !otherPlayerRole)
+        if (!PlayerControl.LocalPlayer || !PlayerControl.LocalPlayer.Data || !PlayerControl.LocalPlayer.Data?.Role || !otherPlayerRole)
         {
             __result = Color.white;
         }

@@ -28,9 +28,11 @@ public class MiraApiSettings(ConfigFile config) : LocalSettingsTab(config)
     public ConfigEntry<bool> ModifiersHudLeftSide { get; private set; } = config.Bind("Displays", "Show Modifiers HUD on Left Side", false);
 
     /// <summary>
-    /// Gets whether to show keybinds in the control mapper.
+    /// Gets whether to show keybinds on buttons.
     /// </summary>
-    public ConfigEntry<bool> ShowKeybinds { get; private set; } = config.Bind("Keybinds", "Show Keybinds in Control Mapper", true);
+    [LocalToggleSetting]
+    public ConfigEntry<bool> ShowKeybinds { get; private set; } = config.Bind("Keybinds", "Show Keybinds on Buttons", true);
+    // This would be placed in the keybinds menu, but it crashes for Epic Games users. - Atony
 
     /// <summary>
     /// Gets whether to apply cosmetic changes to the TaskAdder.

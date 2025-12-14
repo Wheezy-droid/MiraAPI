@@ -21,7 +21,7 @@ public abstract class ModdedOption<T> : IModdedOption
     public uint Id { get; }
 
     /// <inheritdoc />
-    public string Title { get; }
+    public string Title { get; set; }
 
     /// <inheritdoc />
     public StringNames StringName { get; }

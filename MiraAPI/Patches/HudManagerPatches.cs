@@ -27,6 +27,8 @@ public static class HudManagerPatches
 
     private static Dictionary<TextMeshPro, int> vanillaKeybindIcons = new();
 
+    internal static List<TextMeshPro> ModdedKeybindIcons = new();
+
     /*
     /// <summary>
     /// Trigger hudstart on current custom gamemode
@@ -88,6 +90,7 @@ public static class HudManagerPatches
             fakeButton.ToggleVisible(true);
             fakeButton.Destroy();
         }
+        ModdedKeybindIcons = [];
 
         foreach (var button in CustomButtonManager.CustomButtons)
         {
@@ -112,13 +115,15 @@ public static class HudManagerPatches
                 Error($"Failed to create custom button {button.GetType().Name}: {e}");
             }
         }
+        __instance.ImpostorVentButton.transform.SetParent(null);
+        __instance.ImpostorVentButton.transform.SetParent(BottomRight.transform);
 
         gridArrange.Start();
         gridArrange.ArrangeChilds();
         aspectPosition.AdjustPosition();
 
         vanillaKeybindIcons = [];
-        var keybindIconPos = new Vector3(-0.4f, 0.4f, -9.5f);
+        var keybindIconPos = new Vector3(0.4f, 0.4f, -9.5f);
         var vanillaButtons = new Dictionary<GameObject, int>
         {
             { __instance.KillButton.gameObject, 8 },
@@ -180,11 +185,16 @@ public static class HudManagerPatches
     [HarmonyPostfix]
     public static void UpdatePostfix()
     {
+        var canSeeBinds = ActiveInputManager.currentControlType == ActiveInputManager.InputType.Keyboard &&
+                          LocalSettingsTabSingleton<MiraApiSettings>.Instance.ShowKeybinds.Value;
         foreach (var btnIcon in vanillaKeybindIcons)
         {
             btnIcon.Key.text = KeybindUtils.GetKeycodeByActionId(btnIcon.Value).ToString();
-            btnIcon.Key.transform.parent.gameObject.SetActive(ActiveInputManager.currentControlType == ActiveInputManager.InputType.Keyboard &&
-                                                              LocalSettingsTabSingleton<MiraApiSettings>.Instance.ShowKeybinds.Value);
+            btnIcon.Key.transform.parent.gameObject.SetActive(canSeeBinds);
+        }
+        foreach (var btnIcon in ModdedKeybindIcons)
+        {
+            btnIcon.transform.parent.gameObject.SetActive(canSeeBinds);
         }
 
         var player = ReInput.players.GetPlayer(0);

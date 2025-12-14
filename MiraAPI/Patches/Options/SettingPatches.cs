@@ -1,5 +1,8 @@
 ﻿using System.Globalization;
+using System.Linq;
 using HarmonyLib;
+using MiraAPI.GameOptions;
+using MiraAPI.GameOptions.OptionTypes;
 using MiraAPI.Utilities;
 using UnityEngine;
 
@@ -28,7 +31,33 @@ public static class SettingPatches
         string result;
         var suffix = (MiraNumberSuffixes)__instance.SuffixType;
 
-        if (__instance.ZeroIsInfinity && Mathf.Abs(value) < 0.0001f)
+        var custom =
+            ModdedOptionsManager.ModdedOptions.Values.FirstOrDefault(opt =>
+                opt.OptionBehaviour != null && opt.OptionBehaviour.Data == __instance);
+        if (custom is ModdedNumberOption moddedNumberOption)
+        {
+            if (moddedNumberOption.NegativeWordValue != "#" && (int)value == -1)
+            {
+                result = $"<b>{moddedNumberOption.NegativeWordValue}</b>";
+            }
+            else if (moddedNumberOption.ZeroWordValue != "#" && Mathf.Abs(value) < 0.0001f)
+            {
+                result = $"<b>{moddedNumberOption.ZeroWordValue}</b>";
+            }
+            else
+            {
+                result = suffix switch
+                {
+                    MiraNumberSuffixes.None => value.ToString(__instance.FormatString, NumberFormatInfo.InvariantInfo),
+                    MiraNumberSuffixes.Multiplier => value.ToString(__instance.FormatString, NumberFormatInfo.InvariantInfo) + "x",
+                    MiraNumberSuffixes.Percent => value.ToString(__instance.FormatString, NumberFormatInfo.InvariantInfo) + "%",
+                    _ => TranslationController.Instance.GetString(
+                        StringNames.GameSecondsAbbrev,
+                        (Il2CppSystem.Object[])[value.ToString(__instance.FormatString, CultureInfo.InvariantCulture)]),
+                };
+            }
+        }
+        else if (__instance.ZeroIsInfinity && Mathf.Abs(value) < 0.0001f)
         {
             result = "<b>∞</b>";
         }

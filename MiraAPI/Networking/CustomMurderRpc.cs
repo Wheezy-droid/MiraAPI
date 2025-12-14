@@ -87,11 +87,11 @@ public static class CustomMurderRpc
         bool playKillSound = true)
     {
         source.isKilling = false;
-        var data = target.Data;
         if (resultFlags.HasFlag(MurderResultFlags.FailedError))
         {
             return;
         }
+        var data = target.Data;
 
         if (resultFlags.HasFlag(MurderResultFlags.FailedProtected) ||
             (resultFlags.HasFlag(MurderResultFlags.DecisionByHost) && target.protectedByGuardianId > -1))

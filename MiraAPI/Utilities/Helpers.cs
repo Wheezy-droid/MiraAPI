@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using AmongUs.GameOptions;
 using HarmonyLib;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using MiraAPI.Roles;
@@ -535,5 +536,20 @@ public static class Helpers
             return custom.RoleName;
         }
         return role.NiceName;
+    }
+
+    /// <summary>
+    /// Returns whether the role is blacklisted from appearing and spawning. (Only applicable to vanilla roles)
+    /// </summary>
+    /// <param name="role">The role to check.</param>
+    /// <returns>The role's blacklist status.</returns>
+    public static bool IsRoleBlacklisted(this RoleBehaviour role)
+    {
+        // This should be patchable by mods when a vanilla role is meant to be replaced by a custom role.
+        if (role.Role is RoleTypes.Engineer)
+        {
+            return true;
+        }
+        return false;
     }
 }

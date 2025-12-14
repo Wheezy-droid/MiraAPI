@@ -29,6 +29,8 @@ public class ModdedToggleOption : ModdedOption<bool>
     public override OptionBehaviour CreateOption(ToggleOption toggleOpt, NumberOption numberOpt, StringOption stringOpt, PlayerOption playerOpt, Transform container)
     {
         var toggleOption = Object.Instantiate(toggleOpt, Vector3.zero, Quaternion.identity, container);
+        toggleOption.name =
+            $"{ParentMod!.OptionsTitleText}.ToggleOption.{TranslationController.Instance.GetString(StringName)}";
 
         toggleOption.SetUpFromData(Data, 20);
 

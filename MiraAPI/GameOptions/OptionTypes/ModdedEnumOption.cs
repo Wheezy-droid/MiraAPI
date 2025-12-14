@@ -47,6 +47,8 @@ public class ModdedEnumOption : ModdedOption<int>
     public override OptionBehaviour CreateOption(ToggleOption toggleOpt, NumberOption numberOpt, StringOption stringOpt, PlayerOption playerOpt, Transform container)
     {
         var stringOption = Object.Instantiate(stringOpt, container);
+        stringOption.name =
+            $"{ParentMod!.OptionsTitleText}.EnumOption.{TranslationController.Instance.GetString(StringName)}";
 
         stringOption.SetUpFromData(Data, 20);
         stringOption.OnValueChanged = (Il2CppSystem.Action<OptionBehaviour>)ValueChanged;
@@ -138,6 +140,8 @@ public class ModdedEnumOption<T> : ModdedOption<T> where T : Enum
     public override OptionBehaviour CreateOption(ToggleOption toggleOpt, NumberOption numberOpt, StringOption stringOpt, PlayerOption playerOpt, Transform container)
     {
         var stringOption = Object.Instantiate(stringOpt, container);
+        stringOption.name =
+            $"{ParentMod!.OptionsTitleText}.EnumOption.{TranslationController.Instance.GetString(StringName)}";
 
         stringOption.SetUpFromData(Data, 20);
         stringOption.OnValueChanged = (Il2CppSystem.Action<OptionBehaviour>)ValueChanged;

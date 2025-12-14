@@ -127,17 +127,19 @@ internal static class PlayerControlPatches
             return;
         }
 
+        var role = __instance.Data?.Role;
         foreach (var button in CustomButtonManager.CustomButtons)
         {
-            if (__instance.Data?.Role == null)
+            if (role == null)
             {
                 continue;
             }
 
             try
             {
-                if (!button.Enabled(__instance.Data?.Role))
+                if (!button.Enabled(role))
                 {
+                    button.SetActive(false, role);
                     continue;
                 }
 

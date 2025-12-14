@@ -21,10 +21,14 @@ using Object = UnityEngine.Object;
 namespace MiraAPI.Patches.Freeplay;
 
 [HarmonyPatch(typeof(TaskAdderGame))]
-internal static class TaskAdderPatches
+public static class TaskAdderPatches
 {
     private static Scroller _scroller = null!;
     private static Dictionary<string, TaskFolder> folders = new();
+    public static string CrewmateName => TranslationController.Instance.GetString(StringNames.Crewmate);
+    public static string ImpostorName => TranslationController.Instance.GetString(StringNames.Impostor);
+    public static string NeutralName => "Neutral";
+    public static string ModifiersName => "Modifiers";
 
     [HarmonyPostfix]
     [HarmonyPatch(nameof(TaskAdderGame.Begin))]
@@ -66,19 +70,16 @@ internal static class TaskAdderPatches
         __instance.RootFolderPrefab.GetComponent<PassiveButton>().ClickMask = collider;
         __instance.RootFolderPrefab.gameObject.SetActive(false);
         __instance.TaskParent = inner.transform;
-        var crewLocale = TranslationController.Instance.GetString(StringNames.Crewmate);
-        var impLocale = TranslationController.Instance.GetString(StringNames.Impostor);
-
-        var crewmateFolder = __instance.Root.SubFolders.ToArray().FirstOrDefault(x => x.FolderName == crewLocale)!;
-        var impostorFolder = __instance.Root.SubFolders.ToArray().FirstOrDefault(x => x.FolderName == impLocale)!;
+        var crewmateFolder = __instance.Root.SubFolders.ToArray().FirstOrDefault(x => x.FolderName == CrewmateName)!;
+        var impostorFolder = __instance.Root.SubFolders.ToArray().FirstOrDefault(x => x.FolderName == ImpostorName)!;
         //var neutralFolder = __instance.CreateFolder("Neutral", __instance.Root, 2, Color.gray);
-        var modifiersFolder = __instance.CreateFolder("Modifiers", __instance.Root, 0, Color.blue);
+        var modifiersFolder = __instance.CreateFolder(ModifiersName, __instance.Root, 0, Color.blue);
 
         folders.Clear();
         folders.Add(crewmateFolder.FolderName, crewmateFolder);
         folders.Add(impostorFolder.FolderName, impostorFolder);
         //folders.Add("Neutrals", neutralFolder);
-        folders.Add("Modifiers", modifiersFolder);
+        folders.Add(ModifiersName, modifiersFolder);
 
         int folderIdx = 2;
         foreach (var plugin in MiraPluginManager.Instance.RegisteredPlugins)
@@ -137,8 +138,8 @@ internal static class TaskAdderPatches
                 Object.Instantiate(__instance.RootFolderPrefab, __instance.transform);
             impFolder.gameObject.SetActive(false);
             impFolder.SetFolderColor(TaskFolder.FolderColor.Red);
-            crewFolder.FolderName = TranslationController.Instance.GetString(StringNames.Crewmate);
-            impFolder.FolderName = TranslationController.Instance.GetString(StringNames.Impostor);
+            crewFolder.FolderName = CrewmateName;
+            impFolder.FolderName = ImpostorName;
             rootFolder.SubFolders.Insert(0, crewFolder);
             rootFolder.SubFolders.Insert(0, impFolder);
             Il2CppSystem.Collections.Generic.List<RoleBehaviour> impRoles = new();
@@ -440,7 +441,7 @@ internal static class TaskAdderPatches
             }
         }
 
-        if (folders.TryGetValue("Modifiers", out var modifiersFolder) && taskFolder.IsChildOf(modifiersFolder))
+        if (folders.TryGetValue(ModifiersName, out var modifiersFolder) && taskFolder.IsChildOf(modifiersFolder))
         {
             var plugin = MiraPluginManager.GetPluginByGuid(taskFolder.name.Replace("(Clone)", string.Empty));
             if (plugin != null)

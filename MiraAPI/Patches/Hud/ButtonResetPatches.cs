@@ -10,6 +10,11 @@ public static class ButtonResetPatches
 {
     public static void Postfix()
     {
+        ResetCooldowns();
+    }
+
+    public static void ResetCooldowns()
+    {
         foreach (var customActionButton in CustomButtonManager.CustomButtons)
         {
             try

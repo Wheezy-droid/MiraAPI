@@ -1,8 +1,8 @@
-﻿using System;
 using AmongUs.GameOptions;
+using System;
+using MiraAPI.Patches.Freeplay;
 using MiraAPI.Utilities.Assets;
 using UnityEngine;
-
 namespace MiraAPI.Roles;
 
 /// <summary>
@@ -47,7 +47,7 @@ public record struct CustomRoleConfiguration
         {
             ModdedRoleTeams.Crewmate => TranslationController.Instance.GetString(StringNames.Crewmate),
             ModdedRoleTeams.Impostor => TranslationController.Instance.GetString(StringNames.Impostor),
-            _ => "Neutral",
+            _ => TaskAdderPatches.NeutralName,
         };
         IntroSound = role.Team is ModdedRoleTeams.Crewmate
             ? CustomRoleManager.CrewmateIntroSound

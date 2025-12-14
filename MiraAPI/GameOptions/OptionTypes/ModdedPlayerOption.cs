@@ -55,6 +55,8 @@ public class ModdedPlayerOption : ModdedOption<int>
         Transform container)
     {
         var playerOption = Object.Instantiate(playerOpt, container);
+        playerOption.name =
+            $"{ParentMod!.OptionsTitleText}.PlayerOption.{TranslationController.Instance.GetString(StringName)}";
 
         var filteredList = GetFilteredPlayers();
         Values = filteredList.ToIl2CppList();

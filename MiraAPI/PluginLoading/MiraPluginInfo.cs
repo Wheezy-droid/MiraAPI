@@ -51,7 +51,7 @@ public class MiraPluginInfo
     public IReadOnlyCollection<CustomActionButton> Buttons { get; private set; } = null!;
 
     /// <summary>
-    /// Gets a read only dictionary of this plugin's custom game modes.
+    /// Gets a read only dictionary of this plugin's custom presets.
     /// </summary>
     public IReadOnlyCollection<OptionPreset> Presets { get; internal set; } = null!;
 

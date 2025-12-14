@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -13,6 +14,62 @@ namespace MiraAPI.Roles;
 /// </summary>
 public static class CustomRoleUtils
 {
+    /// <summary>
+    /// Determines whether the specified role can spawn in general, accounting for gamemodes and everything else.
+    /// </summary>
+    /// <param name="role">The role you would like to check for.</param>
+    /// <returns>True if the role is able to spawn, otherwise false.</returns>
+    public static bool CanSpawnOnCurrentMode(RoleBehaviour role)
+    {
+        if (role is ICustomRole custom)
+        {
+            return custom.CanSpawnOnCurrentMode();
+        }
+
+        if (GameManager.Instance.IsHideAndSeek())
+        {
+            return role.Role is RoleTypes.Engineer || role.Role is RoleTypes.Impostor;
+        }
+        return true;
+    }
+
+    public static List<(ushort RoleType, int Chance)> GetPossibleRoles(
+        List<RoleManager.RoleAssignmentData> assignmentData,
+        Func<RoleManager.RoleAssignmentData, bool>? predicate = null)
+    {
+        var roles = new List<(ushort, int)>();
+
+        assignmentData.Where(x => predicate == null || predicate(x)).ToList().ForEach(x =>
+        {
+            for (var i = 0; i < x.Count; i++)
+            {
+                roles.Add(((ushort)x.Role.Role, x.Chance));
+            }
+        });
+
+        return roles;
+    }
+
+    public static RoleManager.RoleAssignmentData GetAssignData(RoleTypes roleType)
+    {
+        var currentGameOptions = GameOptionsManager.Instance.CurrentGameOptions;
+        var roleOptions = currentGameOptions.RoleOptions;
+
+        var role = GetRegisteredRole(roleType);
+        var assignmentData = new RoleManager.RoleAssignmentData(role, roleOptions.GetNumPerGame(role!.Role),
+            roleOptions.GetChancePerGame(role.Role));
+
+        return assignmentData;
+    }
+
+    public static RoleBehaviour? GetRegisteredRole(RoleTypes roleType)
+    {
+        // we want to prioritize the custom roles because the role has the right RoleColour/TeamColor
+        var role = CustomRoleManager.AllRoles.FirstOrDefault(x => x.Role == roleType);
+
+        return role;
+    }
+
     /// <summary>
     /// Gets all active in-game roles.
     /// </summary>

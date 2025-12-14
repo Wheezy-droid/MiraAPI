@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AmongUs.GameOptions;
 using HarmonyLib;
 using MiraAPI.GameOptions;
 using MiraAPI.Modifiers;
@@ -163,7 +164,110 @@ public static class LobbyViewPanePatches
     {
         if (SelectedModIdx == 0)
         {
-            return true;
+            float num = 0.95f;
+            float num2 = -6.53f;
+            CategoryHeaderMasked categoryHeaderMasked =
+                Object.Instantiate(__instance.categoryHeaderOrigin, __instance.settingsContainer);
+            categoryHeaderMasked.SetHeader(StringNames.RoleQuotaLabel, 61);
+            categoryHeaderMasked.transform.localScale = Vector3.one;
+            categoryHeaderMasked.transform.localPosition = new Vector3(-9.77f, 1.26f, -2f);
+            __instance.settingsInfo.Add(categoryHeaderMasked.gameObject);
+            var list = new List<RoleBehaviour>();
+            for (int i = 0; i < 2; i++)
+            {
+                var categoryHeaderRoleVariant =
+                    Object.Instantiate(__instance.categoryHeaderRoleOrigin, __instance.settingsContainer);
+                categoryHeaderRoleVariant.SetHeader(
+                    (i == 0) ? StringNames.CrewmateRolesHeader : StringNames.ImpostorRolesHeader,
+                    61);
+                categoryHeaderRoleVariant.transform.localScale = Vector3.one;
+                categoryHeaderRoleVariant.transform.localPosition = new Vector3(0.09f, num, -2f);
+                __instance.settingsInfo.Add(categoryHeaderRoleVariant.gameObject);
+                num -= 0.696f;
+                var roles = RoleManager.Instance.AllRoles.ToArray().Where(x =>
+                    x is not ICustomRole && !x.IsRoleBlacklisted() && x.Role != RoleTypes.Crewmate &&
+                    x.Role != RoleTypes.Impostor && ((i == 0 && x.TeamType is RoleTeamTypes.Crewmate) ||
+                                                     (i == 1 && x.TeamType is RoleTeamTypes.Impostor)) &&
+                    x.Role != RoleTypes.CrewmateGhost && x.Role != RoleTypes.ImpostorGhost).ToList();
+                for (int j = 0; j < roles.Count; j++)
+                {
+                    var roleBehaviour = roles[j];
+                    int chancePerGame =
+                        GameOptionsManager.Instance.CurrentGameOptions.RoleOptions.GetChancePerGame(
+                            roleBehaviour.Role);
+                    int numPerGame =
+                        GameOptionsManager.Instance.CurrentGameOptions.RoleOptions
+                            .GetNumPerGame(roleBehaviour.Role);
+                    bool flag = numPerGame == 0;
+                    var viewSettingsInfoPanelRoleVariant =
+                        Object.Instantiate(
+                            __instance.infoPanelRoleOrigin,
+                            __instance.settingsContainer);
+                    viewSettingsInfoPanelRoleVariant.transform.localScale = Vector3.one;
+                    viewSettingsInfoPanelRoleVariant.transform.localPosition = new Vector3(num2, num, -2f);
+                    if (!flag)
+                    {
+                        list.Add(roleBehaviour);
+                    }
+
+                    viewSettingsInfoPanelRoleVariant.SetInfo(
+                        roleBehaviour.NiceName,
+                        numPerGame,
+                        chancePerGame,
+                        61,
+                        (i == 0) ? Palette.CrewmateRoleBlue : Palette.ImpostorRoleRed,
+                        roleBehaviour.RoleIconSolid,
+                        i == 0,
+                        flag);
+                    __instance.settingsInfo.Add(viewSettingsInfoPanelRoleVariant.gameObject);
+                    num -= 0.664f;
+                }
+            }
+
+            if (list.Count > 0)
+            {
+                var categoryHeaderMasked2 =
+                    Object.Instantiate(__instance.categoryHeaderOrigin, __instance.settingsContainer);
+                categoryHeaderMasked2.SetHeader(StringNames.RoleSettingsLabel, 61);
+                categoryHeaderMasked2.transform.localScale = Vector3.one;
+                categoryHeaderMasked2.transform.localPosition = new Vector3(-9.77f, num, -2f);
+                __instance.settingsInfo.Add(categoryHeaderMasked2.gameObject);
+                num -= 2.1f;
+                float num3 = 0f;
+                for (int k = 0; k < list.Count; k++)
+                {
+                    float num4;
+                    if (k % 2 == 0)
+                    {
+                        num4 = -5.8f;
+                        if (k > 0)
+                        {
+                            num -= num3 + 0.85f;
+                            num3 = 0f;
+                        }
+                    }
+                    else
+                    {
+                        num4 = 0.14999962f;
+                    }
+
+                    var advancedRoleViewPanel =
+                        Object.Instantiate(__instance.advancedRolePanelOrigin, __instance.settingsContainer);
+                    advancedRoleViewPanel.transform.localScale = Vector3.one;
+                    advancedRoleViewPanel.transform.localPosition = new Vector3(num4, num, -2f);
+                    float num5 = advancedRoleViewPanel.SetUp(list[k], 0.85f, 61);
+                    if (num5 > num3)
+                    {
+                        num3 = num5;
+                    }
+
+                    __instance.settingsInfo.Add(advancedRoleViewPanel.gameObject);
+                }
+            }
+
+            __instance.scrollBar.SetYBoundsMax(-num);
+
+            return false;
         }
 
         if (__instance.currentTab == ModifiersTabName)
@@ -278,7 +382,7 @@ public static class LobbyViewPanePatches
 
         foreach (var grouping in sortedRoleGroups)
         {
-            if (!grouping.Any() || grouping.All(x => x.Configuration.HideSettings))
+            if (!grouping.Any() || grouping.All(x => x.Configuration.HideSettings || !x.VisibleInSettings()))
             {
                 continue;
             }
@@ -309,7 +413,7 @@ public static class LobbyViewPanePatches
 
             foreach (var customRole in grouping)
             {
-                if (customRole.Configuration.HideSettings)
+                if (customRole.Configuration.HideSettings || !customRole.VisibleInSettings())
                 {
                     continue;
                 }

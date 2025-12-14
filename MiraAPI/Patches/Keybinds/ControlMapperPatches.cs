@@ -15,7 +15,8 @@ namespace MiraAPI.Patches.Keybinds;
 [HarmonyPatch(typeof(ControlMapper))]
 public static class ControlMapperPatches
 {
-    [HarmonyPrefix]
+    // Patching this crashes for Epic Games users
+    /*[HarmonyPrefix]
     [HarmonyPatch(nameof(ControlMapper.Start))]
     private static void StartPrefix(ControlMapper __instance)
     {
@@ -37,7 +38,7 @@ public static class ControlMapperPatches
             entry.Value = !entry.Value;
             text.text = $"Show Keybinds: {(entry.Value ? "On" : "Off")}";
         }));
-    }
+    }*/
 
     [HarmonyPrefix]
     [HarmonyPatch(nameof(ControlMapper.Update))]

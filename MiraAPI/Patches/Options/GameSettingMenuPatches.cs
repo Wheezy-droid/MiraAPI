@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
+using MiraAPI.GameOptions;
 using MiraAPI.Modifiers;
 using MiraAPI.PluginLoading;
 using MiraAPI.Presets;
@@ -27,19 +28,37 @@ internal static class GameSettingMenuPatches
     private static Vector3 _roleBtnOgPos;
     private static Vector3 _smallRoleBtnOgPos;
     private static Vector3 _modifierBtnOgPos;
+    private static Vector3 _customOneBtnOgPos;
+    private static Vector3 _customTwoBtnOgPos;
 
     private static GameOptionsMenu? _modifiersTab;
     private static PassiveButton? _modifiersButton;
     private static PassiveButton? _smallRolesButton;
+    private static GameOptionsMenu? _customOneTab;
+    private static PassiveButton? _customOneButton;
+    private static GameOptionsMenu? _customTwoTab;
+    private static PassiveButton? _customTwoButton;
+    private static GameObject? _nextModButton;
+    private static GameObject? _previousModButton;
 
     private static Dictionary<int, Vector3> OptionsPositions { get; } = [];
     private static Dictionary<int, Vector3> ModifiersPositions { get; } = [];
+    private static Dictionary<int, Vector3> CustomOnePositions { get; } = [];
+    private static Dictionary<int, Vector3> CustomTwoPositions { get; } = [];
 
     private static void SaveScrollPositions(GameSettingMenu gameSettingMenu)
     {
         if (_modifiersTab)
         {
             ModifiersPositions[SelectedModIdx] = _modifiersTab!.scrollBar.Inner.localPosition;
+        }
+        else if (_customOneTab)
+        {
+            CustomOnePositions[SelectedModIdx] = _customOneTab!.scrollBar.Inner.localPosition;
+        }
+        else if (_customTwoTab)
+        {
+            CustomTwoPositions[SelectedModIdx] = _customTwoTab!.scrollBar.Inner.localPosition;
         }
 
         RoleSettingMenuPatches.RolePositions[SelectedModIdx] = gameSettingMenu.RoleSettingsTab.scrollBar.Inner.localPosition;
@@ -65,9 +84,21 @@ internal static class GameSettingMenuPatches
                 _modifiersTab!.gameObject.SetActive(tabNum == 3);
             }
 
+            if (_customOneTab)
+            {
+                _customOneTab!.gameObject.SetActive(tabNum == 4);
+            }
+
+            if (_customTwoTab)
+            {
+                _customTwoTab!.gameObject.SetActive(tabNum == 5);
+            }
+
             _modifiersButton?.SelectButton(tabNum == 3);
             _smallRolesButton?.SelectButton(tabNum == 2);
-            if (tabNum == 3)
+            _customOneButton?.SelectButton(tabNum == 4);
+            _customTwoButton?.SelectButton(tabNum == 5);
+            if (tabNum >= 3 && tabNum <= 5)
             {
                 if (__instance.RoleSettingsButton.gameObject.active)
                 {
@@ -75,7 +106,21 @@ internal static class GameSettingMenuPatches
                 }
                 else
                 {
-                    _modifiersButton?.SelectButton(true);
+                    switch (tabNum)
+                    {
+                        case 3:
+                            _modifiersButton?.SelectButton(true);
+                            __instance.MenuDescriptionText.text = SelectedMod != null ? SelectedMod.MiraPlugin.ModifierMenuDescription : "Configure modifiers and their settings here!";
+                            break;
+                        case 4:
+                            _customOneButton?.SelectButton(true);
+                            __instance.MenuDescriptionText.text = SelectedMod != null ? SelectedMod.MiraPlugin.CustomOptionMenuOneDescription : "Apply game settings for this mod!";
+                            break;
+                        case 5:
+                            _customTwoButton?.SelectButton(true);
+                            __instance.MenuDescriptionText.text = SelectedMod != null ? SelectedMod.MiraPlugin.CustomOptionMenuTwoDescription : "Apply game settings for this mod!";
+                            break;
+                    }
                 }
             }
         }
@@ -87,19 +132,30 @@ internal static class GameSettingMenuPatches
 
         _modifiersButton?.SelectButton(tabNum == 3);
         _smallRolesButton?.SelectButton(tabNum == 2);
+        _customOneButton?.SelectButton(tabNum == 4);
+        _customTwoButton?.SelectButton(tabNum == 5);
 
-        if (tabNum != 3)
+        if (tabNum >= 3 && tabNum <= 5)
         {
-            return;
-        }
-
-        if (__instance.RoleSettingsButton.gameObject.active)
-        {
-            __instance.RoleSettingsButton.SelectButton(true);
-        }
-        else
-        {
-            _modifiersButton?.SelectButton(true);
+            if (__instance.RoleSettingsButton.gameObject.active)
+            {
+                __instance.RoleSettingsButton.SelectButton(true);
+            }
+            else
+            {
+                switch (tabNum)
+                {
+                    case 3:
+                        _modifiersButton?.SelectButton(true);
+                        break;
+                    case 4:
+                        _customOneButton?.SelectButton(true);
+                        break;
+                    case 5:
+                        _customTwoButton?.SelectButton(true);
+                        break;
+                }
+            }
         }
     }
 
@@ -127,16 +183,16 @@ internal static class GameSettingMenuPatches
 
         _text.alignment = TextAlignmentOptions.Center;
 
-        var nextButton = Object.Instantiate(__instance.BackButton, __instance.BackButton.transform.parent).gameObject;
-        nextButton.transform.localPosition = new Vector3(-2.2663f, 1.5272f, -25f);
-        nextButton.name = "RightArrowButton";
-        nextButton.transform.FindChild("Inactive").gameObject.GetComponent<SpriteRenderer>().sprite =
+        _nextModButton = Object.Instantiate(__instance.BackButton, __instance.BackButton.transform.parent).gameObject;
+        _nextModButton.transform.localPosition = new Vector3(-2.2663f, 1.5272f, -25f);
+        _nextModButton.name = "RightArrowButton";
+        _nextModButton.transform.FindChild("Inactive").gameObject.GetComponent<SpriteRenderer>().sprite =
             MiraAssets.NextButton.LoadAsset();
-        nextButton.transform.FindChild("Active").gameObject.GetComponent<SpriteRenderer>().sprite =
+        _nextModButton.transform.FindChild("Active").gameObject.GetComponent<SpriteRenderer>().sprite =
             MiraAssets.NextButtonActive.LoadAsset();
-        nextButton.gameObject.GetComponent<CloseButtonConsoleBehaviour>().DestroyImmediate();
+        _nextModButton.gameObject.GetComponent<CloseButtonConsoleBehaviour>().DestroyImmediate();
 
-        var passiveButton = nextButton.gameObject.GetComponent<PassiveButton>();
+        var passiveButton = _nextModButton.gameObject.GetComponent<PassiveButton>();
         passiveButton.OnClick = new ButtonClickedEvent();
         passiveButton.OnClick.AddListener(
             (UnityAction)(() =>
@@ -151,13 +207,13 @@ internal static class GameSettingMenuPatches
                 UpdateText(__instance, __instance.GameSettingsTab, __instance.RoleSettingsTab);
             }));
 
-        var backButton = Object.Instantiate(nextButton, __instance.BackButton.transform.parent).gameObject;
-        backButton.transform.localPosition = new Vector3(-4.4209f, 1.5272f, -25f);
-        backButton.name = "LeftArrowButton";
-        backButton.gameObject.GetComponent<CloseButtonConsoleBehaviour>().Destroy();
-        backButton.transform.FindChild("Active").gameObject.GetComponent<SpriteRenderer>().flipX =
-            backButton.transform.FindChild("Inactive").gameObject.GetComponent<SpriteRenderer>().flipX = true;
-        backButton.gameObject.GetComponent<PassiveButton>().OnClick.AddListener(
+        _previousModButton = Object.Instantiate(_nextModButton, __instance.BackButton.transform.parent).gameObject;
+        _previousModButton.transform.localPosition = new Vector3(-4.4209f, 1.5272f, -25f);
+        _previousModButton.name = "LeftArrowButton";
+        _previousModButton.gameObject.GetComponent<CloseButtonConsoleBehaviour>().Destroy();
+        _previousModButton.transform.FindChild("Active").gameObject.GetComponent<SpriteRenderer>().flipX =
+            _previousModButton.transform.FindChild("Inactive").gameObject.GetComponent<SpriteRenderer>().flipX = true;
+        _previousModButton.gameObject.GetComponent<PassiveButton>().OnClick.AddListener(
             (UnityAction)(() =>
             {
                 SaveScrollPositions(__instance);
@@ -173,6 +229,61 @@ internal static class GameSettingMenuPatches
         // clone game settings tab for modifiers
         _modifiersTab = Object.Instantiate(__instance.GameSettingsTab, __instance.GameSettingsTab.transform.parent);
         _modifiersTab.name = "MODIFIERS TAB";
+
+        // clone game settings tab for both custom tabs
+        _customOneTab = Object.Instantiate(__instance.GameSettingsTab, __instance.GameSettingsTab.transform.parent);
+        _customOneTab.name = "CUSTOM TAB 1";
+        _customTwoTab = Object.Instantiate(__instance.GameSettingsTab, __instance.GameSettingsTab.transform.parent);
+        _customTwoTab.name = "CUSTOM TAB 2";
+
+        // create button for the first custom category
+        var customPos = new Vector3(
+            __instance.RoleSettingsButton.transform.localPosition.x,
+            __instance.RoleSettingsButton.transform.localPosition.y,
+            __instance.RoleSettingsButton.transform.localPosition.z);
+        _customOneButton = Object.Instantiate(__instance.RoleSettingsButton, __instance.RoleSettingsButton.transform.parent);
+        _customOneButton.buttonText.gameObject.GetComponent<TextTranslatorTMP>().Destroy();
+        _customOneButton.OnClick = new ButtonClickedEvent();
+        _customOneButton.OnClick.AddListener(
+            (UnityAction)(() =>
+            {
+                __instance.ChangeTab(4, false);
+            }));
+        _customOneButton.OnMouseOver = new UnityEvent();
+        _customOneButton.OnMouseOver.AddListener(
+            (UnityAction)(() =>
+            {
+                __instance.ChangeTab(4, true);
+            }));
+
+        _customOneButton.buttonText.text = SelectedMod != null ? SelectedMod.MiraPlugin.CustomOptionMenuNameOne : "Custom Category 1";
+        customPos.y -= 0.637f;
+        _customOneButton.transform.localPosition = customPos;
+        _customOneButton.name = "CustomOneButton";
+
+        _customOneBtnOgPos = _customOneButton.transform.localPosition;
+
+        // create button for the first custom category
+        _customTwoButton = Object.Instantiate(_customOneButton, _customOneButton.transform.parent);
+        _customTwoButton.OnClick = new ButtonClickedEvent();
+        _customTwoButton.OnClick.AddListener(
+            (UnityAction)(() =>
+            {
+                __instance.ChangeTab(5, false);
+            }));
+        _customTwoButton.OnMouseOver = new UnityEvent();
+        _customTwoButton.OnMouseOver.AddListener(
+            (UnityAction)(() =>
+            {
+                __instance.ChangeTab(5, true);
+            }));
+
+        _customTwoButton.buttonText.text = SelectedMod != null ? SelectedMod.MiraPlugin.CustomOptionMenuNameTwo : "Custom Category 2";
+        customPos.y -= 0.637f;
+        _customTwoButton.transform.localPosition = customPos;
+        _customTwoButton.name = "CustomTwoButton";
+
+        _customTwoBtnOgPos = _customTwoButton.transform.localPosition;
 
         // create button for modifiers
         __instance.RoleSettingsButton.buttonText.gameObject.GetComponent<TextTranslatorTMP>().Destroy();
@@ -304,20 +415,32 @@ internal static class GameSettingMenuPatches
         bool replaceWithModifiers = true;
         _smallRolesButton!.transform.localPosition = _smallRoleBtnOgPos;
         _modifiersButton!.transform.localPosition = _modifierBtnOgPos;
+        _customOneButton!.transform.localPosition = _customOneBtnOgPos;
+        _customTwoButton!.transform.localPosition = _customTwoBtnOgPos;
         menu.RoleSettingsButton.transform.localPosition = _roleBtnOgPos;
 
         if (SelectedModIdx != 0)
         {
+            _customOneButton.buttonText.text = SelectedMod!.MiraPlugin.CustomOptionMenuNameOne;
+            _customTwoButton.buttonText.text = SelectedMod!.MiraPlugin.CustomOptionMenuNameTwo;
             var modHasRoles = SelectedMod!.InternalRoles.Count != 0;
+            var modHasCustomOne = SelectedMod.InternalOptionGroups.Exists(
+                x => x.ParentMenu == MenuCategory.CustomOne);
+            var modHasCustomTwo = SelectedMod.InternalOptionGroups.Exists(
+                x => x.ParentMenu == MenuCategory.CustomTwo);
             var modHasModifiers = SelectedMod.InternalOptionGroups.Exists(
-                x => x.ShowInModifiersMenu || x.OptionableType?.IsAssignableTo(typeof(BaseModifier)) == true);
+                x => x.ShowInModifiersMenu || x.ParentMenu == MenuCategory.Modifiers || x.OptionableType?.IsAssignableTo(typeof(BaseModifier)) == true);
             var modHasOptions =
-                SelectedMod.InternalOptionGroups.Exists(x => x.OptionableType == null && !x.ShowInModifiersMenu);
+                SelectedMod.InternalOptionGroups.Exists(x => x.OptionableType == null && (!x.ShowInModifiersMenu ||
+                    (x.ParentMenu != MenuCategory.Modifiers && x.ParentMenu != MenuCategory.Roles)));
 
             _modifiersButton.gameObject.SetActive(true);
             _smallRolesButton.gameObject.SetActive(true);
+            _customOneButton.gameObject.SetActive(true);
+            _customTwoButton.gameObject.SetActive(true);
             menu.GameSettingsButton.gameObject.SetActive(true);
             menu.RoleSettingsButton.gameObject.SetActive(false);
+            var defaultButton = menu.RoleSettingsButton;
 
             // If there are no registered custom roles in the selected mod, hide the button.
             if (!modHasRoles)
@@ -334,6 +457,7 @@ internal static class GameSettingMenuPatches
                 {
                     _modifiersButton.gameObject.SetActive(false);
                     menu.RoleSettingsButton.gameObject.SetActive(true);
+                    defaultButton = _modifiersButton;
 
                     if (_modifiersTab!.gameObject.active)
                     {
@@ -356,6 +480,7 @@ internal static class GameSettingMenuPatches
                 // If the mod has roles, we can enable the bigger role button and disable the small one.
                 if (modHasRoles)
                 {
+                    defaultButton = menu.RoleSettingsButton;
                     menu.RoleSettingsButton.gameObject.SetActive(true);
                     _smallRolesButton.gameObject.SetActive(false);
                 }
@@ -370,6 +495,7 @@ internal static class GameSettingMenuPatches
                 {
                     menu.ChangeTab(0, false);
                 }
+                defaultButton = menu.RoleSettingsButton;
 
                 // If the mod has roles and modifiers, we can move their buttons to the game settings button position, since nothing is there.
                 if (menu.RoleSettingsButton.gameObject.active)
@@ -389,16 +515,37 @@ internal static class GameSettingMenuPatches
                         _smallRolesButton.transform.localPosition.z);
                 }
             }
+
+            // If the mod has no primary custom tab, we can go ahead and hide the button.
+            if (!modHasCustomOne)
+            {
+                _customOneButton.gameObject.SetActive(false);
+                if (_customOneTab!.gameObject.active)
+                {
+                    defaultButton.SelectButton(true);
+                }
+            }
+            // If the mod has no secondary custom tab, we can go ahead and hide the button.
+            if (!modHasCustomTwo)
+            {
+                _customTwoButton.gameObject.SetActive(false);
+                if (_customTwoTab!.gameObject.active)
+                {
+                    defaultButton.SelectButton(true);
+                }
+            }
         }
         else
         {
             _modifiersButton.gameObject.SetActive(false);
             _smallRolesButton.gameObject.SetActive(false);
+            _customOneButton.gameObject.SetActive(false);
+            _customTwoButton.gameObject.SetActive(false);
             menu.RoleSettingsButton.gameObject.SetActive(true);
             menu.GameSettingsButton.gameObject.SetActive(true);
             replaceWithModifiers = false;
 
-            if (_modifiersTab!.gameObject.active)
+            if (_modifiersTab!.gameObject.active || _customOneTab!.gameObject.active || _customTwoTab!.gameObject.active)
             {
                 menu.ChangeTab(0, false);
             }
@@ -446,7 +593,17 @@ internal static class GameSettingMenuPatches
 
         if (_modifiersTab?.Children?.Count > 0)
         {
-            CleanupSettings(_modifiersTab, true);
+            CleanupSettings(_modifiersTab, MenuCategory.Modifiers);
+        }
+
+        if (_customOneTab?.Children?.Count > 0)
+        {
+            CleanupSettings(_customOneTab, MenuCategory.CustomOne);
+        }
+
+        if (_customTwoTab?.Children?.Count > 0)
+        {
+            CleanupSettings(_customTwoTab, MenuCategory.CustomTwo);
         }
 
         void CleanupRoleSettings(RolesSettingsMenu rolesMenu)
@@ -484,7 +641,7 @@ internal static class GameSettingMenuPatches
             }
         }
 
-        void CleanupSettings(GameOptionsMenu gameOptMenu, bool modifiers = false)
+        void CleanupSettings(GameOptionsMenu gameOptMenu, MenuCategory menuCategory = MenuCategory.Roles)
         {
             ClearOptions(gameOptMenu.Children);
             gameOptMenu.Children = null;
@@ -495,7 +652,19 @@ internal static class GameSettingMenuPatches
                 .ForEach(header => header.gameObject.DestroyImmediate());
 
             gameOptMenu.Initialize();
-            var positions = modifiers ? ModifiersPositions : OptionsPositions;
+            var positions = OptionsPositions;
+            switch (menuCategory)
+            {
+                case MenuCategory.Modifiers:
+                    positions = ModifiersPositions;
+                    break;
+                case MenuCategory.CustomOne:
+                    positions = CustomOnePositions;
+                    break;
+                case MenuCategory.CustomTwo:
+                    positions = CustomTwoPositions;
+                    break;
+            }
             if (positions.TryGetValue(SelectedModIdx, out var pos))
             {
                 gameOptMenu.scrollBar.Inner.localPosition = pos;

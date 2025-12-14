@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using BepInEx.Configuration;
 using MiraAPI.PluginLoading;
@@ -17,6 +18,13 @@ public static class PresetManager
     /// Gets the directory where the presets are stored.
     /// </summary>
     public static string PresetDirectory { get; } = Path.GetFullPath("mira_presets", Application.persistentDataPath);
+
+    internal static List<OptionPreset> InternalMasterPresets { get; } = [];
+
+    /// <summary>
+    /// Gets a read only dictionary of this plugin's custom presets.
+    /// </summary>
+    public static IReadOnlyCollection<OptionPreset> MasterPresets { get; internal set; } = null!;
 
     internal static void CreateDefaultPreset(MiraPluginInfo plugin)
     {
@@ -92,5 +100,59 @@ public static class PresetManager
             plugin.InternalPresets.Add(new OptionPreset(presetName, plugin, presetConfig));
         }
         plugin.Presets = [..plugin.InternalPresets];
+    }
+
+    /// <summary>
+    /// Loads the master presets by reading the configuration files from the preset directory.
+    /// </summary>
+    public static void LoadMasterPreset()
+    {
+        /*foreach (var btn in plugin.InternalPresets.Select(x=>x.PresetButton))
+        {
+            if (btn != null)
+            {
+                Object.DestroyImmediate(btn);
+            }
+        }
+
+        plugin.InternalPresets.Clear();*/
+        if (!Directory.Exists(PresetDirectory))
+        {
+            Directory.CreateDirectory(PresetDirectory);
+        }
+
+        var pluginPresetPath = Path.Combine(PresetDirectory, "MasterPresets");
+        if (!Directory.Exists(pluginPresetPath))
+        {
+            Directory.CreateDirectory(pluginPresetPath);
+        }
+
+        foreach (var file in Directory.GetFiles(pluginPresetPath, "*.cfg"))
+        {
+            var fileName = Path.GetFileName(file);
+            Info($"Loading preset file {fileName}");
+            var presetName = Path.GetFileNameWithoutExtension(file);
+            var presetConfig = new ConfigFile(file, false)
+            {
+                SaveOnConfigSet = false,
+            };
+            foreach (var plugin in MiraPluginManager.Instance.RegisteredPlugins)
+            {
+                foreach (var option in plugin.InternalOptions.Where(x=>x.IncludeInPreset))
+                {
+                    option.Bind(presetConfig);
+                }
+
+                foreach (var role in plugin.InternalRoles.Values.OfType<ICustomRole>().Where(x=>!x.Configuration.HideSettings))
+                {
+                    role.BindConfig(presetConfig);
+                }
+            }
+
+            presetConfig.Save();
+
+            // InternalMasterPresets.Add(new OptionPreset(presetName, plugin, presetConfig));
+        }
+        MasterPresets = [..InternalMasterPresets];
     }
 }

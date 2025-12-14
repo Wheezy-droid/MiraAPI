@@ -46,7 +46,7 @@ public static class KillButtonPatches
     }
 
     /// <summary>
-    /// Use Custom Murder if player is custom role.
+    /// Use Custom Murder instead of Murder Player from vanilla.
     /// </summary>
     [HarmonyPrefix]
     [HarmonyPatch(nameof(KillButton.DoClick))]
@@ -56,11 +56,6 @@ public static class KillButtonPatches
             PlayerControl.LocalPlayer.Data.IsDead || !PlayerControl.LocalPlayer.CanMove)
         {
             return false;
-        }
-
-        if (PlayerControl.LocalPlayer.Data.Role is not ICustomRole)
-        {
-            return true;
         }
 
         PlayerControl.LocalPlayer.RpcCustomMurder(__instance.currentTarget);

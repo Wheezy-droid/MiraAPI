@@ -21,7 +21,15 @@ public class ModdedNumberOptionAttribute(
 {
     internal override IModdedOption CreateOption(object? value, PropertyInfo property)
     {
-        return new ModdedNumberOption(Title, (float)(value ?? min+increment), min, max, increment, suffixType, formatString, zeroInfinity);
+        return new ModdedNumberOption(
+            Title,
+            (float)(value ?? min + increment),
+            min,
+            max,
+            increment,
+            suffixType,
+            formatString,
+            zeroInfinity);
     }
 
     /// <inheritdoc />

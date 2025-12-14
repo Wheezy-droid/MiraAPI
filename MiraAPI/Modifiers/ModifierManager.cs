@@ -179,6 +179,7 @@ public static class ModifierManager
     private static bool IsGameModifierValid(PlayerControl player, GameModifier modifier, uint modifierId)
     {
         return (player.Data.Role is not ICustomRole role || role.IsModifierApplicable(modifier)) &&
-               modifier.IsModifierValidOn(player.Data.Role) && !player.HasModifier(modifierId);
+               modifier.IsModifierValidOn(player.Data.Role) && !player.HasModifier(modifierId) &&
+               modifier.CanSpawnOnCurrentMode();
     }
 }

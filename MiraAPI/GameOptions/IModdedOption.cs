@@ -17,9 +17,9 @@ public interface IModdedOption
     uint Id { get; }
 
     /// <summary>
-    /// Gets the title of the option.
+    /// Gets or sets the title of the option.
     /// </summary>
-    string Title { get; }
+    string Title { get; set; }
 
     /// <summary>
     /// Gets the StringName for the option, used for localization.

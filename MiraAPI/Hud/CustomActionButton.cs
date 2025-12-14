@@ -64,9 +64,14 @@ public abstract class CustomActionButton
     public virtual float EffectDuration => 0;
 
     /// <summary>
-    /// Gets the maximum amount of uses the button has. If the button has infinite uses, set to 0.
+    /// Gets a value indicating whether the button has limited uses.
     /// </summary>
-    public virtual int MaxUses => 0;
+    public bool LimitedUses => ZeroIsInfinite ? MaxUses > 0 : MaxUses >= 0;
+
+    /// <summary>
+    /// Gets the maximum number of uses the button has. If the button has infinite uses, set to 0 or -1 based on what value that ZeroIsInfinite is set to.
+    /// </summary>
+    public virtual int MaxUses => ZeroIsInfinite ? 0 : -1;
 
     /// <summary>
     /// Gets the value indicating uses mode.
@@ -89,9 +94,9 @@ public abstract class CustomActionButton
     public virtual ButtonLocation Location { get; set; } = ButtonLocation.BottomLeft;
 
     /// <summary>
-    /// Gets a value indicating whether the button has limited uses.
+    /// Gets or sets a value indicating whether limited uses are determined via zero or a negative number of uses.
     /// </summary>
-    public bool LimitedUses => MaxUses > 0;
+    public virtual bool ZeroIsInfinite { get; set; } = true;
 
     /// <summary>
     /// Gets or sets a value indicating whether the effect is currently active, if there is one.
@@ -206,7 +211,39 @@ public abstract class CustomActionButton
             {
                 if (Enabled(PlayerControl.LocalPlayer.Data.Role))
                 {
-                    ClickHandler();
+                    // Invoke the generic button click event.
+                    var genericEvent = new MiraButtonClickEvent(this);
+                    MiraEventManager.InvokeEvent(genericEvent);
+                    if (genericEvent.IsCancelled)
+                    {
+                        MiraEventManager.InvokeEvent(new MiraButtonCancelledEvent(this));
+                    }
+
+                    // Invoke the button click event for specific button.
+                    var eventType = CustomButtonManager.ButtonEventTypes[GetType()];
+                    var @event = (MiraCancelableEvent)Activator.CreateInstance(eventType, this, genericEvent)!;
+                    var specificInvoked = MiraEventManager.InvokeEvent(@event, eventType);
+                    if (@event.IsCancelled)
+                    {
+                        var cancelEventType = CustomButtonManager.ButtonCancelledEventTypes[GetType()];
+                        var cancelEvent = (MiraEvent)Activator.CreateInstance(cancelEventType, this)!;
+                        MiraEventManager.InvokeEvent(cancelEvent, cancelEventType);
+                    }
+
+                    if (specificInvoked)
+                    {
+                        if (!@event.IsCancelled)
+                        {
+                            ClickHandler();
+                        }
+                    }
+                    else
+                    {
+                        if (!genericEvent.IsCancelled)
+                        {
+                            ClickHandler();
+                        }
+                    }
                 }
             });
 
@@ -214,9 +251,10 @@ public abstract class CustomActionButton
                 Helpers.CreateKeybindIcon(
                     Button.gameObject,
                     Keybind.CurrentKey,
-                    new Vector3(MaxUses <= 0 ? -0.4f : 0.4f, 0.45f, -9f)
+                    new Vector3(0.4f, 0.45f, -9f)
                 );
             KeybindText = KeybindIcon.transform.GetChild(0).GetComponent<TextMeshPro>();
+            HudManagerPatches.ModdedKeybindIcons.Add(KeybindText);
             Button.usesRemainingSprite.transform.localPosition = new(-0.341f, 0.45f, -0.1f);
         }
     }
@@ -494,7 +532,7 @@ public abstract class CustomActionButton
         if (Keybind != null && KeybindText != null)
         {
             KeybindText.text = Keybind.CurrentKey.ToString();
-            KeybindIcon?.SetActive(ActiveInputManager.currentControlType == ActiveInputManager.InputType.Keyboard &&
+            KeybindIcon?.SetActive(ActiveInputManager.currentControlType is ActiveInputManager.InputType.Keyboard &&
                                    LocalSettingsTabSingleton<MiraApiSettings>.Instance.ShowKeybinds.Value &&
                                    Keybind.CurrentKey != KeyboardKeyCode.None);
         }

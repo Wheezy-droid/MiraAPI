@@ -216,7 +216,16 @@ public static class OptionsPatches
             return true;
         }
 
-        __instance.Value += __instance.Increment;
+        var increment = __instance.Increment;
+
+        if (Input.GetKey(KeyCode.LeftShift) &&
+            __instance.TryGetComponent<MiraNumberOptionComponent>(out var miraNumber) &&
+            miraNumber.ShiftIncrementToggle)
+        {
+            increment /= 2;
+        }
+
+        __instance.Value += increment;
         if (__instance.Value > __instance.ValidRange.max)
         {
             __instance.Value = __instance.ValidRange.min;
@@ -235,7 +244,16 @@ public static class OptionsPatches
             return true;
         }
 
-        __instance.Value -= __instance.Increment;
+        var increment = __instance.Increment;
+
+        if (Input.GetKey(KeyCode.LeftShift) &&
+            __instance.TryGetComponent<MiraNumberOptionComponent>(out var miraNumber) &&
+            miraNumber.ShiftIncrementToggle)
+        {
+            increment /= 2;
+        }
+
+        __instance.Value -= increment;
         if (__instance.Value < __instance.ValidRange.min)
         {
             __instance.Value = __instance.ValidRange.max;

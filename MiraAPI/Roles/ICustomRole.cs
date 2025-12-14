@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using BepInEx.Configuration;
 using MiraAPI.GameOptions;
 using MiraAPI.Modifiers;
@@ -239,4 +240,15 @@ public interface ICustomRole : IOptionable
     {
         return true;
     }
+
+    /// <summary>
+    /// Determines whether the role can spawn in general, accounting for gamemodes and everything else.
+    /// </summary>
+    /// <returns>True if the role is able to spawn, otherwise false.</returns>
+    public virtual bool CanSpawnOnCurrentMode() => !GameManager.Instance.IsHideAndSeek();
+
+    /// <summary>
+    /// Gets the function that determines whether the role should be toggled on or off in the game settings.
+    /// </summary>
+    public virtual Func<bool> VisibleInSettings => () => true;
 }
