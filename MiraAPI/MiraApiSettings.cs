@@ -1,6 +1,8 @@
 ﻿using BepInEx.Configuration;
 using MiraAPI.LocalSettings;
 using MiraAPI.LocalSettings.Attributes;
+using MiraAPI.Patches;
+using MiraAPI.Utilities;
 using MiraAPI.Utilities.Assets;
 
 namespace MiraAPI;
@@ -22,6 +24,33 @@ public class MiraApiSettings(ConfigFile config) : LocalSettingsTab(config)
     };
 
     /// <summary>
+    /// Gets or sets the value stored for scaling buttons properly.
+    /// </summary>
+    public static float OldButtonScaleFactor { get; set; }
+
+    /// <inheritdoc />
+    public override void Open()
+    {
+        base.Open();
+        OldButtonScaleFactor = ButtonUIFactorSlider.Value;
+    }
+
+    /// <inheritdoc />
+    public override void OnOptionChanged(ConfigEntryBase configEntry)
+    {
+        base.OnOptionChanged(configEntry);
+        if (configEntry == ButtonUIFactorSlider)
+        {
+            if (HudManager.InstanceExists)
+            {
+                HudManagerPatches.ResizeUI(1f / OldButtonScaleFactor);
+                HudManagerPatches.ResizeUI(ButtonUIFactorSlider.Value);
+            }
+            OldButtonScaleFactor = ButtonUIFactorSlider.Value;
+        }
+    }
+
+    /// <summary>
     /// Gets whether the modifiers hud should be on the left side of the screen (under roles/task tab). Recommended for streamers.
     /// </summary>
     [LocalToggleSetting]
@@ -31,8 +60,14 @@ public class MiraApiSettings(ConfigFile config) : LocalSettingsTab(config)
     /// Gets whether to show keybinds on buttons.
     /// </summary>
     [LocalToggleSetting]
-    public ConfigEntry<bool> ShowKeybinds { get; private set; } = config.Bind("Keybinds", "Show Keybinds on Buttons", true);
-    // This would be placed in the keybinds menu, but it crashes for Epic Games users. - Atony
+    public ConfigEntry<bool> ShowKeybinds { get; private set; } = config.Bind("Buttons", "Show Keybinds on Buttons", true);
+
+    /// <summary>
+    /// Gets the scale of the buttons.
+    /// </summary>
+    [LocalSliderSetting(min: 0.5f, max: 1.5f, suffixType: MiraNumberSuffixes.Multiplier, formatString: "0.00", displayValue: true)]
+    public ConfigEntry<float> ButtonUIFactorSlider { get; private set; } =
+        config.Bind("Buttons", "Button Scale Factor", 0.75f);
 
     /// <summary>
     /// Gets whether to apply cosmetic changes to the TaskAdder.
