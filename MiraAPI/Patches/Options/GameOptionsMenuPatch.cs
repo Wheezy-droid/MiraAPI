@@ -18,6 +18,19 @@ namespace MiraAPI.Patches.Options;
 internal static class GameOptionsMenuPatch
 {
     [HarmonyPostfix]
+    [HarmonyPatch(nameof(GameOptionsMenu.OnEnable))]
+    public static void OpenPatch(GameOptionsMenu __instance)
+    {
+        HudManager.Instance.PlayerCam.OverrideScreenShakeEnabled = false;
+    }
+    [HarmonyPostfix]
+    [HarmonyPatch(nameof(GameOptionsMenu.OnDisable))]
+    public static void ClosePatch(GameOptionsMenu __instance)
+    {
+        HudManager.Instance.PlayerCam.OverrideScreenShakeEnabled = true;
+    }
+
+    [HarmonyPostfix]
     [HarmonyPatch(nameof(GameOptionsMenu.Update))]
     // ReSharper disable once InconsistentNaming
     public static void UpdatePatch(GameOptionsMenu __instance)

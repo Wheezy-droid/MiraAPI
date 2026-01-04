@@ -4,6 +4,7 @@ using MiraAPI.LocalSettings.Attributes;
 using MiraAPI.Patches;
 using MiraAPI.Utilities;
 using MiraAPI.Utilities.Assets;
+using UnityEngine;
 
 namespace MiraAPI;
 
@@ -48,6 +49,10 @@ public class MiraApiSettings(ConfigFile config) : LocalSettingsTab(config)
             }
             OldButtonScaleFactor = ButtonUIFactorSlider.Value;
         }
+        else if (configEntry == SetFpsSlider)
+        {
+            Application.targetFrameRate = (int)SetFpsSlider.Value;
+        }
     }
 
     /// <summary>
@@ -68,6 +73,13 @@ public class MiraApiSettings(ConfigFile config) : LocalSettingsTab(config)
     [LocalSliderSetting(min: 0.5f, max: 1.5f, suffixType: MiraNumberSuffixes.Multiplier, formatString: "0.00", displayValue: true)]
     public ConfigEntry<float> ButtonUIFactorSlider { get; private set; } =
         config.Bind("Visuals/UI", "Button Scale Factor", 0.75f);
+
+    /// <summary>
+    /// Gets the fps specified by the player.
+    /// </summary>
+    [LocalSliderSetting(min: 60f, max: 240f, suffixType: MiraNumberSuffixes.None, formatString: "0", displayValue: true, roundValue: true)]
+    public ConfigEntry<float> SetFpsSlider { get; private set; } =
+        config.Bind("Visuals/UI", "Frames Per Seconds", 120f);
 
     /// <summary>
     /// Gets whether to apply cosmetic changes to the TaskAdder.

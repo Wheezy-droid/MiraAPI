@@ -89,15 +89,22 @@ public static class CustomRoleManager
 
         foreach (var roleType in roles)
         {
-            ClassInjector.RegisterTypeInIl2Cpp(roleType);
-
-            var role = RegisterRole(roleType, pluginInfo);
-            if (role is null)
+            try
             {
-                continue;
-            }
+                ClassInjector.RegisterTypeInIl2Cpp(roleType);
 
-            pluginInfo.InternalRoles.Add((ushort)role.Role, role);
+                var role = RegisterRole(roleType, pluginInfo);
+                if (role is null)
+                {
+                    continue;
+                }
+
+                pluginInfo.InternalRoles.Add((ushort)role.Role, role);
+            }
+            catch (Exception ex)
+            {
+                Error($"Failed to register role type {roleType.Name}: {ex}");
+            }
         }
 
         pluginInfo.PluginConfig.Save();

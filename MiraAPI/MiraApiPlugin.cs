@@ -22,6 +22,11 @@ namespace MiraAPI;
 public partial class MiraApiPlugin : BasePlugin
 {
     /// <summary>
+    /// Gets whether the current device is running Starlight (on mobile).
+    /// </summary>
+    public static bool IsMobile => Constants.GetPlatformType() is Platforms.Android or Platforms.IPhone;
+
+    /// <summary>
     /// Gets the branding Mira API color.
     /// </summary>
     public static Color MiraColor { get; } = new Color32(238, 154, 112, 255);

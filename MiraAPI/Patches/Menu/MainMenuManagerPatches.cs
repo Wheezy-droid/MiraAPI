@@ -1,5 +1,7 @@
 ﻿using HarmonyLib;
+using MiraAPI.LocalSettings;
 using MiraAPI.Utilities.Assets;
+using UnityEngine;
 
 namespace MiraAPI.Patches.Menu;
 
@@ -17,5 +19,6 @@ public static class MainMenuManagerPatches
     public static void AwakePostfix()
     {
         AddressablesLoader.LoadAll();
+        Application.targetFrameRate = (int)LocalSettingsTabSingleton<MiraApiSettings>.Instance.SetFpsSlider.Value;
     }
 }

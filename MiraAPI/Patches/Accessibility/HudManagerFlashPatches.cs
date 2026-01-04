@@ -49,14 +49,18 @@ public static class HudManagerFlashPatches
             {
                 SoundManager.Instance.PlaySound(ShipStatus.Instance.SabotageSound, false, 1f, null);
             }
-            if (hudManager.lightFlashHandle == null)
-            {
-                hudManager.lightFlashHandle = DestroyableSingleton<DualshockLightManager>.Instance.AllocateLight();
-                hudManager.lightFlashHandle.color = new Color(1f, 0f, 0f, 1f);
-                hudManager.lightFlashHandle.intensity = 1f;
-            }
             light = !light;
-            hudManager.lightFlashHandle.color.SetAlpha(light ? 1f : 0f);
+
+            /*if (!MiraApiPlugin.IsMobile)
+            {
+                if (hudManager.lightFlashHandle == null)
+                {
+                    hudManager.lightFlashHandle = DualshockLightManager.Instance.AllocateLight();
+                    hudManager.lightFlashHandle.color = new Color(1f, 0f, 0f, 1f);
+                    hudManager.lightFlashHandle.intensity = 1f;
+                }
+                hudManager.lightFlashHandle.color.SetAlpha(light ? 1f : 0f);
+            }*/
             yield return wait;
         }
     }

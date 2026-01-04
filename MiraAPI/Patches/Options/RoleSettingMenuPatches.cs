@@ -36,6 +36,19 @@ public static class RoleSettingMenuPatches
     private static List<IModdedOption>? CurrentRoleOptions { get; set; }
 
     [HarmonyPostfix]
+    [HarmonyPatch(nameof(RolesSettingsMenu.OnEnable))]
+    public static void OpenPatch(RolesSettingsMenu __instance)
+    {
+        HudManager.Instance.PlayerCam.OverrideScreenShakeEnabled = false;
+    }
+    [HarmonyPostfix]
+    [HarmonyPatch(nameof(RolesSettingsMenu.OnDisable))]
+    public static void ClosePatch(RolesSettingsMenu __instance)
+    {
+        HudManager.Instance.PlayerCam.OverrideScreenShakeEnabled = true;
+    }
+
+    [HarmonyPostfix]
     [HarmonyPatch(nameof(RolesSettingsMenu.SetQuotaTab))]
     public static void SetQuotaTabPostfix(RolesSettingsMenu __instance)
     {

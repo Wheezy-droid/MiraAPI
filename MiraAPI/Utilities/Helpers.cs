@@ -546,10 +546,6 @@ public static class Helpers
     public static bool IsRoleBlacklisted(this RoleBehaviour role)
     {
         // This should be patchable by mods when a vanilla role is meant to be replaced by a custom role.
-        if (role.Role is RoleTypes.Engineer)
-        {
-            return true;
-        }
         return false;
     }
 }

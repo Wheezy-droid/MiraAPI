@@ -225,9 +225,14 @@ public static class HudManagerPatches
             }
             var icon = Helpers.CreateKeybindIcon(buttonObj, key, keybindIconPos);
             vanillaKeybindIcons.Add(icon.transform.GetChild(0).GetComponent<TextMeshPro>(), actionId);
-            var comp = buttonObj.GetComponent<ActionButton>();
-            KeybindManager.VanillaKeybinds[comp.GetType()].Button = comp;
+            if (!MiraApiPlugin.IsMobile)
+            {
+                var comp = buttonObj.GetComponent<ActionButton>();
+                KeybindManager.VanillaKeybinds[comp.GetType()].Button = comp;
+            }
         }
+        MiraApiSettings.OldButtonScaleFactor =
+            LocalSettingsTabSingleton<MiraApiSettings>.Instance.ButtonUIFactorSlider.Value;
         Coroutines.Start(CoResizeUI());
     }
 
