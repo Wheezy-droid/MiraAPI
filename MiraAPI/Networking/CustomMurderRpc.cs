@@ -142,7 +142,6 @@ public static class CustomMurderRpc
         {
             return;
         }
-        var data = target.Data;
 
         if (resultFlags.HasFlag(MurderResultFlags.FailedProtected) ||
             (resultFlags.HasFlag(MurderResultFlags.DecisionByHost) && target.protectedByGuardianId > -1))
@@ -225,7 +224,7 @@ public static class CustomMurderRpc
             {
                 try
                 {
-                    HudManager.Instance.KillOverlay.ShowKillAnimation(source.Data, data);
+                    HudManager.Instance.KillOverlay.ShowKillAnimation(source.Data, target.Data);
                 }
                 catch (Exception e)
                 {
