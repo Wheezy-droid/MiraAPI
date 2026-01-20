@@ -19,6 +19,7 @@ public static class PresetManager
     /// </summary>
     public static string PresetDirectory { get; } = Path.GetFullPath("mira_presets", Application.persistentDataPath);
 
+    internal static Dictionary<MiraPluginInfo, OptionPreset> DefaultPresets { get; } = [];
     internal static List<OptionPreset> InternalMasterPresets { get; } = [];
 
     /// <summary>
@@ -47,6 +48,7 @@ public static class PresetManager
         }
 
         presetConfig.Save();
+        DefaultPresets.Add(plugin, new OptionPreset("Default", plugin, presetConfig));
     }
 
     /// <summary>
