@@ -13,6 +13,10 @@ internal static class HowToPlayPatch
     // yes i patched the entire method
     private static void Prefix(HowToPlayScene __instance)
     {
+        if (RoleManager.Instance.AllRoles.ToArray().All(x => !x.IsCustomRole()))
+        {
+            return;
+        }
         __instance.sceneIndex = 0;
         __instance.category = HowToPlayScene.HowToPlayCategory.RolesSelection;
         __instance.startPage.SetActive(false);
