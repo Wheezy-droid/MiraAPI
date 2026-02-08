@@ -91,6 +91,11 @@ public static class MiraAssets
     public static LoadableResourceAsset CheckmarkBox { get; } = new("MiraAPI.Resources.CheckMarkBox.png");
 
     /// <summary>
+    /// Gets the Reset Box used in the Settings Menu.
+    /// </summary>
+    public static LoadableResourceAsset ResetButton { get; } = new("MiraAPI.Resources.ResetButton.png");
+
+    /// <summary>
     /// Gets the Checkmark used in the Settings Menu.
     /// </summary>
     public static LoadableResourceAsset Checkmark { get; } = new("MiraAPI.Resources.Checkmark.png");

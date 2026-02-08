@@ -1,4 +1,5 @@
 ﻿global using static Reactor.Utilities.Logger<MiraAPI.MiraApiPlugin>;
+using System;
 using BepInEx;
 using BepInEx.Unity.IL2CPP;
 using HarmonyLib;
@@ -22,7 +23,7 @@ namespace MiraAPI;
 public partial class MiraApiPlugin : BasePlugin
 {
     /// <summary>
-    /// Gets whether the current device is running Starlight (on mobile).
+    /// Gets a value indicating whether the current device is running Starlight (on mobile).
     /// </summary>
     public static bool IsMobile => Constants.GetPlatformType() is Platforms.Android or Platforms.IPhone;
 
@@ -36,6 +37,11 @@ public partial class MiraApiPlugin : BasePlugin
     /// </summary>
     public static Color DefaultHeaderColor { get; } = new Color32(77, 77, 77, 255);
 
+    /// <summary>
+    /// Gets a value indicating whether the current build is a development build or not. This mostly avoids confusion for users asking why the mod appears red.
+    /// </summary>
+    public static bool IsDevBuild => Version.Contains("ci", StringComparison.OrdinalIgnoreCase) || Version.Contains("dev", StringComparison.OrdinalIgnoreCase);
+
     private static MiraPluginManager? PluginManager { get; set; }
     internal Harmony Harmony { get; } = new(Id);
 
@@ -44,7 +50,7 @@ public partial class MiraApiPlugin : BasePlugin
     {
         Harmony.PatchAll();
 
-        ReactorCredits.Register("Mira API", Version, true, ReactorCredits.AlwaysShow);
+        ReactorCredits.Register("Mira API", Version, IsDevBuild, ReactorCredits.AlwaysShow);
 
         PluginManager = new MiraPluginManager();
         PluginManager.Initialize();

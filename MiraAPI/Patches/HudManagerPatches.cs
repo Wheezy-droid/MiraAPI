@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using HarmonyLib;
 using MiraAPI.Hud;
 using MiraAPI.Keybinds;
@@ -26,9 +25,9 @@ public static class HudManagerPatches
     public static Transform? BottomRight { get; private set; }
     public static Transform? Buttons { get; private set; }
 
-    private static Dictionary<TextMeshPro, int> vanillaKeybindIcons = new();
+    private static Dictionary<TextMeshPro, int> vanillaKeybindIcons = [];
 
-    internal static List<TextMeshPro> ModdedKeybindIcons = new();
+    internal static List<TextMeshPro> ModdedKeybindIcons = [];
 
     public static IEnumerator CoResizeUI()
     {
@@ -272,31 +271,54 @@ public static class HudManagerPatches
     {
         var canSeeBinds = ActiveInputManager.currentControlType == ActiveInputManager.InputType.Keyboard &&
                           LocalSettingsTabSingleton<MiraApiSettings>.Instance.ShowKeybinds.Value;
+
         foreach (var btnIcon in vanillaKeybindIcons)
         {
             btnIcon.Key.text = KeybindUtils.GetKeycodeByActionId(btnIcon.Value).ToString();
             btnIcon.Key.transform.parent.gameObject.SetActive(canSeeBinds);
         }
+
         foreach (var btnIcon in ModdedKeybindIcons)
         {
             btnIcon.transform.parent.gameObject.SetActive(canSeeBinds);
         }
 
         var player = ReInput.players.GetPlayer(0);
+        var keyboard = player.controllers.Keyboard;
         foreach (var entry in KeybindManager.Keybinds)
         {
-            var keyboard = player.controllers.Keyboard;
-            bool modifierKeysPressed = entry.ModifierKeys.All(k => keyboard.GetModifierKey(k)) ||
-                                       entry.ModifierKeys.Length <= 0;
+            var modKeys = entry.ModifierKeys;
+            bool modifierKeysPressed;
+            if (modKeys.Length == 0)
+            {
+                modifierKeysPressed = true;
+            }
+            else
+            {
+                modifierKeysPressed = true;
+                foreach (var key in modKeys)
+                {
+                    if (keyboard.GetModifierKey(key)) continue;
+                    modifierKeysPressed = false;
+                    break;
+                }
+            }
+
             if (player.GetButtonDown(entry.Id) && modifierKeysPressed)
             {
                 entry.Invoke();
             }
         }
 
-        foreach (var entry in KeybindManager.VanillaKeybinds.Values.Where(x => player.GetButtonDown(x.Id)))
+        // suppressed warning because we want minimum allocations here
+#pragma warning disable S3267
+        foreach (var entry in KeybindManager.VanillaKeybinds.Values)
+#pragma warning restore S3267
         {
-            entry.Invoke();
+            if (player.GetButtonDown(entry.Id))
+            {
+                entry.Invoke();
+            }
         }
     }
 }

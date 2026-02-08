@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Linq;
+using AmongUs.GameOptions;
 using HarmonyLib;
+using Il2CppInterop.Runtime.Attributes;
 using MiraAPI.GameOptions;
 using MiraAPI.Modifiers;
+using MiraAPI.Presets;
 using MiraAPI.Utilities;
 using MiraAPI.Utilities.Assets;
 using Reactor.Localization.Utilities;
@@ -10,6 +13,7 @@ using Reactor.Utilities.Extensions;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
 namespace MiraAPI.Patches.Options;
@@ -23,6 +27,7 @@ internal static class GameOptionsMenuPatch
     {
         HudManager.Instance.PlayerCam.OverrideScreenShakeEnabled = false;
     }
+
     [HarmonyPostfix]
     [HarmonyPatch(nameof(GameOptionsMenu.OnDisable))]
     public static void ClosePatch(GameOptionsMenu __instance)
@@ -166,7 +171,7 @@ internal static class GameOptionsMenuPatch
     private static void ModifiersUpdate(ref float num)
     {
         var groups = GameSettingMenuPatches.SelectedMod?.InternalOptionGroups
-            .Where(x => x.ShowInModifiersMenu || x.OptionableType?.IsAssignableTo(typeof(BaseModifier))==true) ?? [];
+            .Where(x => x.ShowInModifiersMenu || x.OptionableType?.IsAssignableTo(typeof(BaseModifier)) == true) ?? [];
 
         foreach (var modGroup in groups)
         {
@@ -177,7 +182,7 @@ internal static class GameOptionsMenuPatch
     private static void ModifiersCreate(GameOptionsMenu menu)
     {
         var groups = GameSettingMenuPatches.SelectedMod?.InternalOptionGroups
-            .Where(x => x.ShowInModifiersMenu || x.OptionableType?.IsAssignableTo(typeof(BaseModifier))==true) ?? [];
+            .Where(x => x.ShowInModifiersMenu || x.OptionableType?.IsAssignableTo(typeof(BaseModifier)) == true) ?? [];
         foreach (var group in groups)
         {
             CreateGroup(menu, group);
@@ -270,7 +275,9 @@ internal static class GameOptionsMenuPatch
         categoryHeaderMasked.SetHeader(CustomStringName.CreateAndRegister(group.GroupName), 20);
         categoryHeaderMasked.Background.color = group.GroupColor;
         categoryHeaderMasked.Divider.color = group.GroupColor;
-        categoryHeaderMasked.Title.color = group.GroupColor.Equals(MiraApiPlugin.DefaultHeaderColor) ? Color.white : group.GroupColor.FindAlternateColor();
+        categoryHeaderMasked.Title.color = group.GroupColor.Equals(MiraApiPlugin.DefaultHeaderColor)
+            ? Color.white
+            : group.GroupColor.FindAlternateColor();
 
         categoryHeaderMasked.Background.sprite = MiraAssets.CategoryHeader.LoadAsset();
         categoryHeaderMasked.Background.sprite.texture.filterMode = FilterMode.Bilinear;
@@ -289,13 +296,20 @@ internal static class GameOptionsMenuPatch
         newText.transform.localPosition = new Vector3(2.6249f, -0.165f, 0f);
         newText.gameObject.GetComponent<TextTranslatorTMP>().Destroy();
 
-        var options = group.Options.Select(
-            opt => opt.CreateOption(
-                menu.checkboxOrigin,
-                menu.numberOptionOrigin,
-                menu.stringOptionOrigin,
-                menu.playerOptionOrigin,
-                menu.settingsContainer));
+        var options = group.Options.Select(opt => opt.CreateOption(
+            menu.checkboxOrigin,
+            menu.numberOptionOrigin,
+            menu.stringOptionOrigin,
+            menu.playerOptionOrigin,
+            menu.settingsContainer));
+
+        OptionPreset? defaultPreset = null;
+        if (GameSettingMenuPatches.SelectedMod != null && PresetManager.DefaultPresets.TryGetValue(
+                GameSettingMenuPatches.SelectedMod,
+                out var preset))
+        {
+            defaultPreset = preset;
+        }
 
         foreach (var newOpt in options)
         {
@@ -331,14 +345,79 @@ internal static class GameOptionsMenuPatch
             if (newOpt is ToggleOption toggle)
             {
                 toggle.CheckMark.sprite = MiraAssets.Checkmark.LoadAsset();
-                toggle.CheckMark.color = group.GroupColor != MiraApiPlugin.DefaultHeaderColor ? group.GroupColor : MiraAssets.AcceptedTeal;
+                toggle.CheckMark.color = group.GroupColor != MiraApiPlugin.DefaultHeaderColor
+                    ? group.GroupColor
+                    : MiraAssets.AcceptedTeal;
                 var rend = toggle.CheckMark.transform.parent.FindChild("ActiveSprite")
                     .GetComponent<SpriteRenderer>();
                 rend.sprite = MiraAssets.CheckmarkBox.LoadAsset();
-                rend.color = group.GroupColor != MiraApiPlugin.DefaultHeaderColor ? group.GroupColor : MiraAssets.AcceptedTeal;
+                rend.color = group.GroupColor != MiraApiPlugin.DefaultHeaderColor
+                    ? group.GroupColor
+                    : MiraAssets.AcceptedTeal;
             }
 
             menu.Children.Add(newOpt);
+            var resetBtn = new GameObject("ResetOption");
+            resetBtn.transform.parent = newOpt.transform;
+            resetBtn.transform.localScale = new(.5f, .5f, 1);
+            resetBtn.layer = LayerMask.NameToLayer("UI");
+            resetBtn.transform.localPosition = new Vector3(-3.1f, 0f, -2f);
+            var resetRend = resetBtn.AddComponent<SpriteRenderer>();
+            resetRend.sprite = MiraAssets.ResetButton.LoadAsset();
+            resetRend.maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
+            resetRend.color = group.GroupColor.Equals(MiraApiPlugin.DefaultHeaderColor)
+                ? Color.white
+                : group.GroupColor.FindAlternateColor();
+            var resetBoxCol = resetBtn.gameObject.AddComponent<BoxCollider2D>();
+            resetBoxCol.size = new Vector2(1f, 1f);
+            resetBoxCol.offset = new Vector2(0, 0);
+            var passiveButton = resetBtn.AddComponent<PassiveButton>();
+            passiveButton.OnClick = new Button.ButtonClickedEvent();
+            passiveButton.ClickSound = menu.BackButton.GetComponent<PassiveButton>().ClickSound;
+            passiveButton.OnMouseOver = new UnityEvent();
+            passiveButton.OnMouseOver.AddListener(
+                (UnityAction)(() =>
+                {
+                    resetRend.color = group.GroupColor != MiraApiPlugin.DefaultHeaderColor
+                        ? group.GroupColor
+                        : MiraAssets.AcceptedTeal;
+                }));
+            passiveButton.OnMouseOut = new UnityEvent();
+            passiveButton.OnMouseOut.AddListener(
+                (UnityAction)(() =>
+                {
+                    resetRend.color = group.GroupColor.Equals(MiraApiPlugin.DefaultHeaderColor)
+                        ? Color.white
+                        : group.GroupColor.FindAlternateColor();
+                }));
+            if (newOpt is ToggleOption toggleOpt)
+            {
+                passiveButton.OnClick.AddListener(
+                    (UnityAction)(() =>
+                    {
+                        defaultPreset!.ResetOption(toggleOpt);
+                    }));
+            }
+            else if (newOpt is NumberOption numOpt)
+            {
+                passiveButton.OnClick.AddListener(
+                    (UnityAction)(() =>
+                    {
+                        defaultPreset!.ResetOption(numOpt);
+                    }));
+            }
+            else if (newOpt is StringOption strOpt)
+            {
+                passiveButton.OnClick.AddListener(
+                    (UnityAction)(() =>
+                    {
+                        defaultPreset!.ResetOption(strOpt);
+                    }));
+            }
+            if (!defaultPreset!.IsOptionInPreset(newOpt))
+            {
+                resetBtn.Destroy();
+            }
 
             newOpt.Initialize();
             newOpt.gameObject.SetActive(false);

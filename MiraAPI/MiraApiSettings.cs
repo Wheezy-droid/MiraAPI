@@ -79,7 +79,7 @@ public class MiraApiSettings(ConfigFile config) : LocalSettingsTab(config)
     /// </summary>
     [LocalSliderSetting(min: 60f, max: 240f, suffixType: MiraNumberSuffixes.None, formatString: "0", displayValue: true, roundValue: true)]
     public ConfigEntry<float> SetFpsSlider { get; private set; } =
-        config.Bind("Visuals/UI", "Frames Per Seconds", 120f);
+        config.Bind("Visuals/UI", "Max FPS", 120f);
 
     /// <summary>
     /// Gets whether to apply cosmetic changes to the TaskAdder.

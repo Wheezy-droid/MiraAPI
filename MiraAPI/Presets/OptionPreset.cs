@@ -71,4 +71,26 @@ public class OptionPreset
 
         CustomRoleManager.SyncAllRoleSettings();
     }
+
+    /// <summary>
+    /// Resets the specified option with the preset provided.
+    /// </summary>
+    public void ResetOption(OptionBehaviour baseOption)
+    {
+        var selectedOpt = Plugin.InternalOptions.First(x => x.OptionBehaviour == baseOption);
+        selectedOpt.LoadFromPreset(PresetConfig);
+        /*ModdedOptionsManager.SyncAllOptions();
+
+        CustomRoleManager.SyncAllRoleSettings();*/
+    }
+
+    /// <summary>
+    /// Gets whether the specified option is included in the preset.
+    /// </summary>
+    /// <returns>>The value of whether the option is in the preset.</returns>
+    public bool IsOptionInPreset(OptionBehaviour baseOption)
+    {
+        var selectedOpt = Plugin.InternalOptions.First(x => x.OptionBehaviour == baseOption);
+        return selectedOpt.ConfigDefinition != null && PresetConfig.ContainsKey(selectedOpt.ConfigDefinition);
+    }
 }

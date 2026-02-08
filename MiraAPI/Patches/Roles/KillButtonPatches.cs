@@ -58,7 +58,7 @@ public static class KillButtonPatches
             return false;
         }
 
-        PlayerControl.LocalPlayer.RpcCustomMurder(__instance.currentTarget);
+        PlayerControl.LocalPlayer.RpcCustomMurder(__instance.currentTarget, MeetingCheck.OutsideMeeting);
         __instance.SetTarget(null);
 
         return false;

@@ -32,7 +32,6 @@ public static class CustomMurderRpc
     /// <param name="teleportMurderer">Should the killer be snapped to the dead player.</param>
     /// <param name="showKillAnim">Should the kill animation be shown.</param>
     /// <param name="playKillSound">Should the kill sound be played.</param>
-    [MethodRpc((uint)MiraRpc.CustomMurder, LocalHandling = RpcLocalHandling.Before)]
     public static void RpcCustomMurder(
         this PlayerControl source,
         PlayerControl target,
@@ -43,10 +42,50 @@ public static class CustomMurderRpc
         bool showKillAnim = true,
         bool playKillSound = true)
     {
+        source.RpcCustomMurder(
+            target,
+            MeetingCheck.Ignore,
+            didSucceed,
+            resetKillTimer,
+            createDeadBody,
+            teleportMurderer,
+            showKillAnim,
+            playKillSound);
+    }
+
+    /// <summary>
+    /// Networked Custom Murder method, which checks for meetings as well.
+    /// </summary>
+    /// <param name="source">The killer.</param>
+    /// <param name="target">The player to murder.</param>
+    /// <param name="inMeeting">Whether the murder is intended to be triggered in a meeting.</param>
+    /// <param name="didSucceed">Whether the murder was successful or not.</param>
+    /// <param name="resetKillTimer">Should the kill timer be reset.</param>
+    /// <param name="createDeadBody">Should a dead body be created.</param>
+    /// <param name="teleportMurderer">Should the killer be snapped to the dead player.</param>
+    /// <param name="showKillAnim">Should the kill animation be shown.</param>
+    /// <param name="playKillSound">Should the kill sound be played.</param>
+    [MethodRpc((uint)MiraRpc.CustomMurder, LocalHandling = RpcLocalHandling.Before)]
+    public static void RpcCustomMurder(
+        this PlayerControl source,
+        PlayerControl target,
+        MeetingCheck inMeeting,
+        bool didSucceed = true,
+        bool resetKillTimer = true,
+        bool createDeadBody = true,
+        bool teleportMurderer = true,
+        bool showKillAnim = true,
+        bool playKillSound = true)
+    {
         var murderResultFlags = didSucceed ? MurderResultFlags.Succeeded : MurderResultFlags.FailedError;
 
-        var beforeMurderEvent = new BeforeMurderEvent(source, target);
+        var beforeMurderEvent = new BeforeMurderEvent(source, target, inMeeting);
         MiraEventManager.InvokeEvent(beforeMurderEvent);
+        var isMeetingActive = MeetingHud.Instance != null || ExileController.Instance != null;
+        if ((inMeeting is MeetingCheck.ForMeeting && !isMeetingActive) || (inMeeting is MeetingCheck.OutsideMeeting && isMeetingActive))
+        {
+            beforeMurderEvent.Cancel();
+        }
 
         if (beforeMurderEvent.IsCancelled)
         {
@@ -91,7 +130,6 @@ public static class CustomMurderRpc
         {
             return;
         }
-        var data = target.Data;
 
         if (resultFlags.HasFlag(MurderResultFlags.FailedProtected) ||
             (resultFlags.HasFlag(MurderResultFlags.DecisionByHost) && target.protectedByGuardianId > -1))
@@ -174,7 +212,7 @@ public static class CustomMurderRpc
             {
                 try
                 {
-                    HudManager.Instance.KillOverlay.ShowKillAnimation(source.Data, data);
+                    HudManager.Instance.KillOverlay.ShowKillAnimation(source.Data, target.Data);
                 }
                 catch (Exception e)
                 {
@@ -297,4 +335,25 @@ public static class CustomMurderRpc
         PlayerControl.LocalPlayer.isKilling = false;
         source.isKilling = false;
     }
+}
+
+/// <summary>
+/// Checks for custom murders.
+/// </summary>
+public enum MeetingCheck
+{
+    /// <summary>
+    /// Checks for meetings.
+    /// </summary>
+    ForMeeting,
+
+    /// <summary>
+    /// Checks for a meeting to not be active.
+    /// </summary>
+    OutsideMeeting,
+
+    /// <summary>
+    /// Doesn't check for a meeting at all.
+    /// </summary>
+    Ignore,
 }
