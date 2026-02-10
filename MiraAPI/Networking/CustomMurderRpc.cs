@@ -77,6 +77,10 @@ public static class CustomMurderRpc
         bool showKillAnim = true,
         bool playKillSound = true)
     {
+        if (LobbyBehaviour.Instance)
+        {
+            return;
+        }
         var murderResultFlags = didSucceed ? MurderResultFlags.Succeeded : MurderResultFlags.FailedError;
 
         var beforeMurderEvent = new BeforeMurderEvent(source, target, inMeeting);
@@ -126,7 +130,7 @@ public static class CustomMurderRpc
         bool playKillSound = true)
     {
         source.isKilling = false;
-        if (resultFlags.HasFlag(MurderResultFlags.FailedError))
+        if (resultFlags.HasFlag(MurderResultFlags.FailedError) || LobbyBehaviour.Instance)
         {
             return;
         }
@@ -249,6 +253,10 @@ public static class CustomMurderRpc
         bool createDeadBody = true,
         bool teleportMurderer = true)
     {
+        if (LobbyBehaviour.Instance)
+        {
+            yield break;
+        }
         var cam = Camera.main?.GetComponent<FollowerCamera>();
         var isParticipant = source.AmOwner || target.AmOwner;
         var sourcePhys = source.MyPhysics;
