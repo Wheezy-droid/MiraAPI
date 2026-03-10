@@ -139,7 +139,7 @@ public static class CustomMurderRpc
         bool showKillAnim = true,
         bool playKillSound = true)
     {
-        if (LobbyBehaviour.Instance || !host.IsHost())
+        if (LobbyBehaviour.Instance || !host.IsHost() || target.Data.IsDead || target.Data.Disconnected)
         {
             return;
         }
