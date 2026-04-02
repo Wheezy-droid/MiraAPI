@@ -93,7 +93,12 @@ public static class CustomMurderRpc
             beforeMurderEvent.Cancel();
         }
 
-        if (beforeMurderEvent.IsCancelled)
+        if (target.ProtectedByGa())
+        {
+            beforeMurderEvent.Cancel();
+            murderResultFlags = MurderResultFlags.FailedProtected;
+        }
+        else if (beforeMurderEvent.IsCancelled)
         {
             murderResultFlags = MurderResultFlags.FailedError;
         }
