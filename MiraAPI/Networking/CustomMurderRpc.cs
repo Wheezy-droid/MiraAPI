@@ -103,6 +103,11 @@ public static class CustomMurderRpc
             murderResultFlags = MurderResultFlags.FailedError;
         }
 
+        if (beforeMurderEvent.IsCancelled && source.AmOwner)
+        {
+            source.isKilling = true;
+        }
+
         if (!PlayerControl.LocalPlayer.IsHost())
         {
             return;
@@ -146,6 +151,7 @@ public static class CustomMurderRpc
     {
         if (LobbyBehaviour.Instance || !host.IsHost() || target.Data.IsDead || target.Data.Disconnected)
         {
+            source.isKilling = false;
             return;
         }
 
