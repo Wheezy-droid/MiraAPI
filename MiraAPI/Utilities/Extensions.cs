@@ -182,6 +182,16 @@ public static class Extensions
     }
 
     /// <summary>
+    /// Checks if a PlayerControl is protected by a Guardian Angel.
+    /// </summary>
+    /// <param name="playerControl">The player you're checking for.</param>
+    /// <returns>If the player is protected, true, else false.</returns>
+    public static bool ProtectedByGa(this PlayerControl playerControl)
+    {
+        return playerControl.protectedByGuardianId > -1;
+    }
+
+    /// <summary>
     /// Used to convert a System.Collections.Generic.List to Il2cppSystem.
     /// </summary>
     /// <param name="systemList">The list.</param>

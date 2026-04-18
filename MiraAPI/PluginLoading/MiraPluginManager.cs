@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using BepInEx.Configuration;
 using BepInEx.Unity.IL2CPP;
+using HarmonyLib;
 using MiraAPI.Colors;
 using MiraAPI.Events;
 using MiraAPI.GameEnd;
@@ -21,7 +22,6 @@ using MiraAPI.Roles;
 using MiraAPI.Utilities;
 using Reactor.Networking;
 using Reactor.Utilities;
-using Rewired;
 
 namespace MiraAPI.PluginLoading;
 
@@ -60,7 +60,7 @@ public sealed class MiraPluginManager
                     continue;
                 }
 
-                foreach (var method in type.GetMethods())
+                foreach (var method in AccessTools.GetDeclaredMethods(type))
                 {
                     var eventAttribute = method.GetCustomAttribute<RegisterEventAttribute>();
                     if (eventAttribute == null)

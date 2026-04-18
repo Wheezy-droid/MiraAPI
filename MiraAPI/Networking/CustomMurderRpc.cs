@@ -93,9 +93,19 @@ public static class CustomMurderRpc
             beforeMurderEvent.Cancel();
         }
 
-        if (beforeMurderEvent.IsCancelled)
+        if (target.ProtectedByGa())
+        {
+            beforeMurderEvent.Cancel();
+            murderResultFlags = MurderResultFlags.FailedProtected;
+        }
+        else if (beforeMurderEvent.IsCancelled)
         {
             murderResultFlags = MurderResultFlags.FailedError;
+        }
+
+        if (beforeMurderEvent.IsCancelled && source.AmOwner)
+        {
+            source.isKilling = true;
         }
 
         if (!PlayerControl.LocalPlayer.IsHost())
@@ -141,6 +151,7 @@ public static class CustomMurderRpc
     {
         if (LobbyBehaviour.Instance || !host.IsHost() || target.Data.IsDead || target.Data.Disconnected)
         {
+            source.isKilling = false;
             return;
         }
 

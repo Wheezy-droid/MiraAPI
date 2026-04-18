@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using HarmonyLib;
 using Il2CppInterop.Runtime.InteropTypes;
+using Object = Il2CppSystem.Object;
 
 namespace MiraAPI.Utilities;
 
@@ -17,6 +18,7 @@ public class StateMachineWrapper<T> where T : Il2CppObjectBase
     // normally it is fields, but IL2CPP turns them into properties
     private readonly PropertyInfo _thisProperty;
     private readonly PropertyInfo _stateProperty;
+    private readonly PropertyInfo _currentProperty;
     private readonly Dictionary<string, PropertyInfo> _propertyCache;
 
     private T? _parentInstance;
@@ -37,8 +39,9 @@ public class StateMachineWrapper<T> where T : Il2CppObjectBase
         var type = _stateMachine.GetType();
         _thisProperty = AccessTools.Property(type, "__4__this");
         _stateProperty = AccessTools.Property(type, "__1__state");
+        _currentProperty = AccessTools.Property(type, "__2__current");
 
-        if (_thisProperty == null || _stateProperty == null)
+        if (_thisProperty == null || _stateProperty == null || _currentProperty == null)
         {
             throw new MissingMemberException($"Could not find required properties in type '{type}'.");
         }
@@ -51,6 +54,18 @@ public class StateMachineWrapper<T> where T : Il2CppObjectBase
     /// </summary>
     /// <returns>The current state as an integer.</returns>
     public int GetState() => (int)_stateProperty.GetValue(_stateMachine)!;
+
+    /// <summary>
+    /// Sets the current state of the state machine.
+    /// </summary>
+    /// <param name="newState">The new state to use.</param>
+    public void SetState(int newState) => _stateProperty.SetValue(_stateMachine, newState);
+
+    /// <summary>
+    /// Sets the newest yield return of the state machine.
+    /// </summary>
+    /// <param name="newReturn">The new return to use.</param>
+    public void SetRecentReturn(Object newReturn) => _currentProperty.SetValue(_stateMachine, newReturn);
 
     /// <summary>
     /// Gets a parameter from the state machine by its name.

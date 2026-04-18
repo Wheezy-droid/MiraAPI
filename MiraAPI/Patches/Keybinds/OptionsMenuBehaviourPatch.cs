@@ -16,8 +16,15 @@ public static class OptionsMenuBehaviourPatch
     private static void OpenPostfix(OptionsMenuBehaviour __instance)
     {
         _remap_rollover = GameObject.Find("Remap Controls")?.GetComponent<ButtonRolloverHandler>()!;
-        _remap_background = _remap_rollover.transform.FindChild("Background").GetComponent<SpriteRenderer>();
-        _remap_background.color = _conflicts ? Color.red : Color.white;
+        try
+        {
+            _remap_background = _remap_rollover.transform.FindChild("Background").GetComponent<SpriteRenderer>();
+            _remap_background.color = _conflicts ? Color.red : Color.white;
+        }
+        catch
+        {
+            // ignored, this normally breaks when on mobile since there's no remap button screen.
+        }
     }
 
     [HarmonyPostfix]
