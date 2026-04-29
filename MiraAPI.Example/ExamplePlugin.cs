@@ -77,3 +77,4 @@ namespace MiraAPI.Example
         } // End of the ChatPatch
     } // End of the whole Mod
 } // End of the Namespace
+ 
