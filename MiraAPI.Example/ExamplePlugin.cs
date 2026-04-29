@@ -26,15 +26,54 @@ public partial class ExamplePlugin : BasePlugin, IMiraPlugin
         Harmony.PatchAll();
     }
 }
-public override void Load() 
+using HarmonyLib;
+using MiraAPI.Options;
+using MiraAPI.Roles;
+
+namespace MiraAPI.Example
 {
-    // SNS RULE 1: No Sabotages (Cooldown is basically infinite)
-    GameOptionsManager.Instance.currentVars.SabotageCooldown = 9999f;
+    [HarmonyPatch]
+    public class ExamplePlugin : MiraPlugin
+    {
+        public override string OptionsTitleText => "Wheezy SNS Mode";
 
-    // SNS RULE 2: No Reporting (Distance set to 0)
-    GameOptionsManager.Instance.currentVars.ReportDistance = 0f;
+        public override void Load()
+        {
+            var options = GameOptionsManager.Instance.currentVars;
+            
+            // --- SNS RULES SETTINGS ---
+            
+            // 1. ALLOW COMMS, BLOCK OTHERS (SNS Rule)
+            options.SabotageCooldown = 20f; 
 
-    // SNS RULE 3: Guaranteed Shapeshifter
-    GameOptionsManager.Instance.currentVars.NumShapeshifters = 3;
-    GameOptionsManager.Instance.currentVars.ShapeshifterChance = 100;
+            // 2. DISABLE REPORTS & EMERGENCY MEETINGS
+            options.ReportDistance = 0f;
+            options.NumEmergencyMeetings = 0;
+
+            // 3. SHAPESHIFTER GUARANTEE
+            options.NumShapeshifters = 3;
+            options.ShapeshifterChance = 100;
+            options.ShapeshiftCooldown = 10f;
+            options.ShapeshiftDuration = 60f;
+
+            Harmony.PatchAll();
+            
+        }
+    }
 }
+    [HarmonyPatch(typeof(ChatController), nameof(ChatController.SendChat))]
+    public static class ChatPatch
+    {
+        public static void Postfix(ChatController __instance)
+        {
+            // This checks if the player typed /r
+            if (__instance.TextArea.text.ToLower() == "/r")
+            {
+                __instance.AddChat(PlayerControl.LocalPlayer, "SNS RULES: Shift-kill only. Comms only. No reports.");
+            }
+        }
+    }
+
+        } // End of the ChatPatch
+    } // End of the whole Mod
+} // End of the Namespace
