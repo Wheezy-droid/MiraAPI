@@ -1,23 +1,15 @@
 using HarmonyLib;
 using MiraAPI.Options;
 using MiraAPI.Roles;
-using MiraAPI.PluginLoading;
-using BepInEx.Configuration;
 
 namespace MiraAPI.Example
 {
     [HarmonyPatch]
-    public class ExamplePlugin : IMiraPlugin
+    public class ExamplePlugin : MiraPlugin
     {
-        public string OptionsTitleText => "Wheezy SNS Mode";
+        public override string OptionsTitleText => "Wheezy SNS Mode";
 
-        public ConfigFile GetConfigFile()
-        {
-            // Return the BepInEx configuration file
-            throw new System.NotImplementedException();
-        }
-
-        public void Load()
+        public override void Load()
         {
             var options = GameOptionsManager.Instance.currentVars;
             options.SabotageCooldown = 20f; 
