@@ -26,3 +26,15 @@ public partial class ExamplePlugin : BasePlugin, IMiraPlugin
         Harmony.PatchAll();
     }
 }
+public override void Load() 
+{
+    // SNS RULE 1: No Sabotages (Cooldown is basically infinite)
+    GameOptionsManager.Instance.currentVars.SabotageCooldown = 9999f;
+
+    // SNS RULE 2: No Reporting (Distance set to 0)
+    GameOptionsManager.Instance.currentVars.ReportDistance = 0f;
+
+    // SNS RULE 3: Guaranteed Shapeshifter
+    GameOptionsManager.Instance.currentVars.NumShapeshifters = 3;
+    GameOptionsManager.Instance.currentVars.ShapeshifterChance = 100;
+}
