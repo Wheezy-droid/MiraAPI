@@ -21,10 +21,10 @@ namespace MiraAPI.Example
         }
     }
 
-    // THIS PART SENDS THE GREET MESSAGE AUTOMATICALLY
     [HarmonyPatch(typeof(AmongUsClient), nameof(AmongUsClient.OnPlayerJoined))]
     public static class JoinPatch
     {
+        [HarmonyPostfix]
         public static void Postfix()
         {
             if (PlayerControl.LocalPlayer != null)
@@ -34,7 +34,6 @@ namespace MiraAPI.Example
         }
     }
 
-    // THIS PART LETS PEOPLE TYPE /R
     [HarmonyPatch(typeof(ChatController), nameof(ChatController.SendChat))]
     public static class ChatPatch
     {
