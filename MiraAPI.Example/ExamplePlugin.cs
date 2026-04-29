@@ -21,15 +21,29 @@ namespace MiraAPI.Example
         }
     }
 
+    // THIS PART SENDS THE GREET MESSAGE AUTOMATICALLY
+    [HarmonyPatch(typeof(AmongUsClient), nameof(AmongUsClient.OnPlayerJoined))]
+    public static class JoinPatch
+    {
+        public static void Postfix()
+        {
+            if (PlayerControl.LocalPlayer != null)
+            {
+                ChatMessageManager.Instance.SendChat("WELCOME! SNS MODE: Shift-kill only. Comms only. No reports! Type /r for rules.");
+            }
+        }
+    }
+
+    // THIS PART LETS PEOPLE TYPE /R
     [HarmonyPatch(typeof(ChatController), nameof(ChatController.SendChat))]
     public static class ChatPatch
     {
         [HarmonyPostfix]
         public static void Postfix(ChatController __instance)
         {
-            if (__instance.TextArea.text.ToLower() == "/r")
+            if (__instance.TextArea.text.ToLower().Contains("/r"))
             {
-                __instance.AddChat(PlayerControl.LocalPlayer, "SNS RULES: Shift-kill only. Comms only. No reports.");
+                __instance.AddChat(PlayerControl.LocalPlayer, "RULES: 1. Shift-kill only 2. Comms only 3. No reports/meetings.");
             }
         }
     }
