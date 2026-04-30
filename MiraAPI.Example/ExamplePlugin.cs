@@ -1,25 +1,33 @@
 using HarmonyLib;
-using System;
+using MiraAPI.Options; // This is the 'dictionary' for the menu
 
 namespace MiraAPI.Example
 {
-    [HarmonyPatch]
-    public class ExamplePlugin : global::MiraAPI.MiraPlugin
+    public class ExamplePlugin : MiraPlugin
     {
-        public override string OptionsTitleText => "Wheezy SNS Mode";
+        // 1. Create the setting variable
+        public static ToggleOption MuhsinGodMode;
 
         public override void Load()
         {
-            var options = global::MiraAPI.Options.GameOptionsManager.Instance.currentVars;
-            if (options != null)
+            // 2. Add the setting to the menu
+            MuhsinGodMode = TargetOptions.AddToggle("Muhsin's God Mode", false);
+
+            // 3. Tell the game what to do when it's ON
+            Harmony.PatchAll();
+        }
+    }
+
+    [HarmonyPatch(typeof(PlayerControl), nameof(PlayerControl.FixedUpdate))]
+    public static class SpeedPatch
+    {
+        public static void Postfix(PlayerControl __instance)
+        {
+            // If the button is ON, make the host (you) super fast!
+            if (ExamplePlugin.MuhsinGodMode.Value && __instance.AmOwner)
             {
-                options.SabotageCooldown = 20f; 
-                options.ReportDistance = 0f;
-                options.NumEmergencyMeetings = 0;
-                options.NumShapeshifters = 3;
-                options.ShapeshifterChance = 100;
+                __instance.MyPhysics.Speed = 5.0f; 
             }
-            HarmonyLib.Harmony.PatchAll();
         }
     }
 }
