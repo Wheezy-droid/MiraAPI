@@ -1,6 +1,7 @@
 using HarmonyLib;
 using MiraAPI;
 using MiraAPI.Options;
+using MiraAPI.Roles;
 using System;
 
 namespace MiraAPI.Example
@@ -12,7 +13,9 @@ namespace MiraAPI.Example
 
         public override void Load()
         {
-            var options = GameOptionsManager.Instance.currentVars;
+            // Use the full path to make it easier for the compiler
+            var options = MiraAPI.Options.GameOptionsManager.Instance.currentVars;
+            
             if (options != null)
             {
                 options.SabotageCooldown = 20f; 
@@ -21,7 +24,7 @@ namespace MiraAPI.Example
                 options.NumShapeshifters = 3;
                 options.ShapeshifterChance = 100;
             }
-            Harmony.PatchAll();
+            HarmonyLib.Harmony.PatchAll();
         }
     }
 
