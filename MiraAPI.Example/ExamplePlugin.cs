@@ -1,7 +1,5 @@
 using HarmonyLib;
 using MiraAPI;
-// Remove this line - 'Options' namespace doesn't exist or isn't needed
-// using MiraAPI.Options;
 using System;
 
 namespace MiraAPI.Example
