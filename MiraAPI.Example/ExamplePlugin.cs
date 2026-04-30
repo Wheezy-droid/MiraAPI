@@ -13,28 +13,24 @@ namespace MiraAPI.Example
         public static string Command = "/sns";
     }
 
-    [HarmonyPatch(typeof(PlayerControl), nameof(PlayerControl.FixedUpdate))]
+    [HarmonyPatch(typeof(PlayerControl), "FixedUpdate")]
     public static class SNSPatch
     {
-        [HarmonyPostfix]
         public static void Postfix(PlayerControl __instance)
         {
-            if (!SNSConfig.Enabled)
-                return;
+            if (!SNSConfig.Enabled) return;
+            if (__instance == null) return;
+            if (__instance.Data == null) return;
 
-            if (__instance == null || __instance.Data == null)
-                return;
-
-            if (!AmongUsClient.Instance || !AmongUsClient.Instance.AmHost)
-                return;
-
-            var data = __instance.Data;
+            if (AmongUsClient.Instance == null) return;
+            if (!AmongUsClient.Instance.AmHost) return;
 
             __instance.MyPhysics.Speed = SNSConfig.PlayerSpeed;
 
-            if (data.IsDead && !SNSConfig.AllowGhostMovement)
+            if (__instance.Data.IsDead && !SNSConfig.AllowGhostMovement)
             {
                 __instance.moveable = false;
+
                 if (__instance.MyPhysics != null && __instance.MyPhysics.body != null)
                 {
                     __instance.MyPhysics.body.velocity = Vector2.zero;
@@ -47,33 +43,32 @@ namespace MiraAPI.Example
         }
     }
 
-    [HarmonyPatch(typeof(ChatController), nameof(ChatController.SendChat))]
+    [HarmonyPatch(typeof(ChatController), "SendChat")]
     public static class SNSChatPatch
     {
         private static float lastUsed = 0f;
         private const float cooldown = 2f;
 
-        [HarmonyPostfix]
         public static void Postfix(ChatController __instance)
         {
-            if (!SNSConfig.Enabled)
-                return;
+            if (!SNSConfig.Enabled) return;
+            if (__instance == null) return;
+            if (PlayerControl.LocalPlayer == null) return;
 
-            if (__instance == null)
-                return;
+            string msg = "";
 
-            if (PlayerControl.LocalPlayer == null)
-                return;
+            if (__instance.TextArea != null)
+                msg = __instance.TextArea.text;
 
-            string msg = __instance.TextArea != null ? __instance.TextArea.text.Trim().ToLower() : "";
+            if (msg == null) return;
 
-            if (string.IsNullOrEmpty(msg))
-                return;
+            msg = msg.Trim().ToLower();
+
+            if (msg == "") return;
 
             if (msg == SNSConfig.Command)
             {
-                if (Time.time - lastUsed < cooldown)
-                    return;
+                if (Time.time - lastUsed < cooldown) return;
 
                 lastUsed = Time.time;
 
