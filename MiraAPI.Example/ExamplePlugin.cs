@@ -1,28 +1,26 @@
 using HarmonyLib;
 using System;
 
+// This is the shortcut that fixes the "Missing Reference" error
+using GameOptions = global::MiraAPI.Options.GameOptionsManager;
+
 namespace MiraAPI.Example
 {
-    // 1. Using [HarmonyPatch] without ': MiraPlugin' to avoid the CS0246 error
     [HarmonyPatch]
-    public class ExamplePlugin 
+    public class ExamplePlugin
     {
-        [HarmonyPatch(typeof(global::MiraAPI.Options.GameOptionsManager), nameof(global::MiraAPI.Options.GameOptionsManager.Load))]
+        [HarmonyPatch(typeof(GameOptions), nameof(GameOptions.Load))]
         [HarmonyPostfix]
-        public static void Load()
+        public static void Postfix()
         {
-            var options = global::MiraAPI.Options.GameOptionsManager.Instance.currentVars;
+            var options = GameOptions.Instance.currentVars;
             if (options != null)
             {
-                // SNS Rules
-                options.SabotageCooldown = 20f; 
-                options.ReportDistance = 0f;
-                options.NumEmergencyMeetings = 0;
+                // SNS & Freeze Tag Logic
                 options.NumShapeshifters = 3;
                 options.ShapeshifterChance = 100;
-                
-                // Freeze Tag (No venting)
-                options.CanVent = false;
+                options.ReportDistance = 0f;
+                options.CanVent = false; // Freeze Tag Rule
             }
         }
     }
@@ -33,10 +31,9 @@ namespace MiraAPI.Example
         [HarmonyPostfix]
         public static void Postfix(ChatController __instance)
         {
-            // This is the cool part the AI wrote - type /r to show rules!
             if (__instance != null && __instance.TextArea.text.ToLower().Contains("/r"))
             {
-                __instance.AddChat(PlayerControl.LocalPlayer, "MODE: SNS/Freeze Tag. No reports. No venting!");
+                __instance.AddChat(PlayerControl.LocalPlayer, "Rules: SNS/Freeze Mode Active!");
             }
         }
     }
