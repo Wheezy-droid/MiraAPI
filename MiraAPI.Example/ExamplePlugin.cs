@@ -3,36 +3,40 @@ using System;
 
 namespace MiraAPI.Example
 {
+    // 1. Using [HarmonyPatch] without ': MiraPlugin' to avoid the CS0246 error
     [HarmonyPatch]
-    public class ExamplePlugin
+    public class ExamplePlugin 
     {
-        // We use 'object' and 'dynamic' to hide the names from the angry compiler
-        [HarmonyPatch(typeof(PlayerControl), nameof(PlayerControl.FixedUpdate))]
+        [HarmonyPatch(typeof(global::MiraAPI.Options.GameOptionsManager), nameof(global::MiraAPI.Options.GameOptionsManager.Load))]
         [HarmonyPostfix]
-        public static void Postfix(PlayerControl __instance)
+        public static void Load()
         {
-            // SNS & Freeze Tag Logic combined
-            // This bypasses the "Options does not exist" error
-            dynamic options = __instance.GetType().Assembly.GetType("MiraAPI.Options.GameOptionsManager")
-                ?.GetProperty("Instance")?.GetValue(null);
-            
-            var currentVars = options?.currentVars;
-
-            if (currentVars != null)
+            var options = global::MiraAPI.Options.GameOptionsManager.Instance.currentVars;
+            if (options != null)
             {
                 // SNS Rules
-                currentVars.NumShapeshifters = 3;
-                currentVars.ShapeshifterChance = 100;
-                currentVars.ReportDistance = 0f;
+                options.SabotageCooldown = 20f; 
+                options.ReportDistance = 0f;
+                options.NumEmergencyMeetings = 0;
+                options.NumShapeshifters = 3;
+                options.ShapeshifterChance = 100;
                 
-                // Freeze Tag (No Venting)
-                currentVars.CanVent = false;
+                // Freeze Tag (No venting)
+                options.CanVent = false;
             }
+        }
+    }
 
-            // Freeze Logic: If dead crewmate, stop movement
-            if (__instance.Data.IsDead && !__instance.Data.IsImpostor)
+    [HarmonyPatch(typeof(ChatController), nameof(ChatController.SendChat))]
+    public static class ChatPatch
+    {
+        [HarmonyPostfix]
+        public static void Postfix(ChatController __instance)
+        {
+            // This is the cool part the AI wrote - type /r to show rules!
+            if (__instance != null && __instance.TextArea.text.ToLower().Contains("/r"))
             {
-                __instance.MyPhysics.Speed = 0;
+                __instance.AddChat(PlayerControl.LocalPlayer, "MODE: SNS/Freeze Tag. No reports. No venting!");
             }
         }
     }
