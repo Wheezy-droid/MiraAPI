@@ -1,32 +1,62 @@
 using HarmonyLib;
-using MiraAPI.Options; // This is the 'dictionary' for the menu
+using System;
+using System.Linq;
 
 namespace MiraAPI.Example
 {
-    public class ExamplePlugin : MiraPlugin
+    [HarmonyPatch]
+    public class ExamplePlugin
     {
-        // 1. Create the setting variable
-        public static ToggleOption MuhsinGodMode;
+        // This is the "brain" that tells the game which mod is active
+        public static string ActiveMode = "Normal"; 
 
-        public override void Load()
+        [HarmonyPatch(typeof(global::MiraAPI.Options.TargetOptions), nameof(global::MiraAPI.Options.TargetOptions.Initialize))]
+        [HarmonyPostfix]
+        public static void SetupMenu()
         {
-            // 2. Add the setting to the menu
-            MuhsinGodMode = TargetOptions.AddToggle("Muhsin's God Mode", false);
+            // Creates a poll/selection in your menu
+            global::MiraAPI.Options.TargetOptions.AddString("Game Mode", new[] { "Normal", "SNS", "Freeze Tag" }, "Normal");
+        }
 
-            // 3. Tell the game what to do when it's ON
-            Harmony.PatchAll();
+        [HarmonyPatch(typeof(global::MiraAPI.Options.GameOptionsManager), nameof(global::MiraAPI.Options.GameOptionsManager.Load))]
+        [HarmonyPostfix]
+        public static void ApplySelectedMode()
+        {
+            var options = global::MiraAPI.Options.GameOptionsManager.Instance.currentVars;
+            if (options == null) return;
+
+            // Logic for SNS
+            if (ActiveMode == "SNS") {
+                options.NumShapeshifters = 3;
+                options.ShapeshifterChance = 100;
+                options.ReportDistance = 0f;
+                options.NumEmergencyMeetings = 0;
+            }
+
+            // Logic for Freeze Tag (from your TikTok rules)
+            if (ActiveMode == "Freeze Tag") {
+                options.NumImpostors = 2; // Taggers
+                options.KillDistance = 0; // Must "touch" them
+                options.ReportDistance = 0f; // No reporting bodies
+                options.CanVent = false; // Impostors can't vent
+            }
         }
     }
 
+    // This makes the "Freezing" actually happen
     [HarmonyPatch(typeof(PlayerControl), nameof(PlayerControl.FixedUpdate))]
-    public static class SpeedPatch
+    public static class FreezeLogic
     {
+        [HarmonyPostfix]
         public static void Postfix(PlayerControl __instance)
         {
-            // If the button is ON, make the host (you) super fast!
-            if (ExamplePlugin.MuhsinGodMode.Value && __instance.AmOwner)
+            if (ExamplePlugin.ActiveMode == "Freeze Tag")
             {
-                __instance.MyPhysics.Speed = 5.0f; 
+                // If a crewmate is 'killed' (tagged), we freeze their physics
+                if (__instance.Data.IsDead && !__instance.Data.IsImpostor)
+                {
+                    __instance.MyPhysics.Speed = 0; 
+                }
             }
         }
     }
