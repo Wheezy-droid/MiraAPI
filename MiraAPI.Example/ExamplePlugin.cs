@@ -1,6 +1,7 @@
 #nullable disable
 using HarmonyLib;
 using UnityEngine;
+using TMPro;
 
 namespace MiraAPI.Example
 {
@@ -9,6 +10,7 @@ namespace MiraAPI.Example
         public static bool Enabled = true;
         public static float Speed = 1.5f;
         public static string Command = "/sns";
+        public static bool SNSActive = false;
     }
 
     [HarmonyPatch(typeof(PlayerControl), "FixedUpdate")]
@@ -19,35 +21,39 @@ namespace MiraAPI.Example
             if (!SNSConfig.Enabled) return;
             if (__instance == null) return;
             if (__instance.Data == null) return;
-
             if (AmongUsClient.Instance == null) return;
             if (!AmongUsClient.Instance.AmHost) return;
 
-            __instance.MyPhysics.Speed = SNSConfig.Speed;
+            __instance.MyPhysics.Speed = SNSConfig.SNSActive ? SNSConfig.Speed : 1f;
         }
     }
 
-    [HarmonyPatch(typeof(ChatController), "SendChat")]
-    public static class SNSChat
+    [HarmonyPatch(typeof(ChatController), "Update")]
+    public static class SNSChatInputPatch
     {
         public static void Postfix(ChatController __instance)
         {
             if (!SNSConfig.Enabled) return;
-            if (__instance == null) return;
             if (PlayerControl.LocalPlayer == null) return;
+            if (__instance == null) return;
 
-            if (__instance.TextArea == null) return;
+            TMP_InputField input = __instance?.chatText; // most builds use this
+            if (input == null) return;
 
-            string msg = __instance.TextArea.text;
-            if (msg == null) return;
+            if (!Input.GetKeyDown(KeyCode.Return)) return;
 
-            msg = msg.Trim().ToLower();
+            string msg = input.text?.Trim().ToLower();
+            if (string.IsNullOrEmpty(msg)) return;
 
             if (msg == SNSConfig.Command)
             {
+                SNSConfig.SNSActive = !SNSConfig.SNSActive;
+
+                input.text = "";
+
                 __instance.AddChat(
                     PlayerControl.LocalPlayer,
-                    "SNS Mode is ON"
+                    "SNS Mode: " + (SNSConfig.SNSActive ? "ON" : "OFF")
                 );
             }
         }
