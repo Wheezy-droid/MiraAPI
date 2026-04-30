@@ -1,34 +1,87 @@
 #nullable disable
-[HarmonyPatch(typeof(ChatController), nameof(ChatController.SendChat))]
-public static class SNSChatPatch
+using HarmonyLib;
+using UnityEngine;
+
+namespace MiraAPI.Example
 {
-    private static float lastUsed = 0f;
-    private const float cooldown = 2f;
-
-    [HarmonyPostfix]
-    public static void Postfix(ChatController __instance)
+    public static class SNSConfig
     {
-        if (!SNSConfig.Enabled)
-            return;
+        public static bool Enabled = true;
+        public static float PlayerSpeed = 1.75f;
+        public static bool AllowGhostMovement = false;
+        public static string ModeMessage = "SNS Mode Active!";
+        public static string Command = "/sns";
+    }
 
-        if (__instance == null || PlayerControl.LocalPlayer == null)
-            return;
-
-        string msg = __instance.TextArea?.text?.Trim().ToLower();
-        if (string.IsNullOrEmpty(msg))
-            return;
-
-        if (msg == SNSConfig.Command)
+    [HarmonyPatch(typeof(PlayerControl), nameof(PlayerControl.FixedUpdate))]
+    public static class SNSPatch
+    {
+        [HarmonyPostfix]
+        public static void Postfix(PlayerControl __instance)
         {
-            if (UnityEngine.Time.time - lastUsed < cooldown)
+            if (!SNSConfig.Enabled)
                 return;
 
-            lastUsed = UnityEngine.Time.time;
+            if (__instance == null || __instance.Data == null)
+                return;
 
-            __instance.AddChat(
-                PlayerControl.LocalPlayer,
-                SNSConfig.ModeMessage
-            );
+            if (!AmongUsClient.Instance || !AmongUsClient.Instance.AmHost)
+                return;
+
+            var data = __instance.Data;
+
+            __instance.MyPhysics.Speed = SNSConfig.PlayerSpeed;
+
+            if (data.IsDead && !SNSConfig.AllowGhostMovement)
+            {
+                __instance.moveable = false;
+                if (__instance.MyPhysics != null && __instance.MyPhysics.body != null)
+                {
+                    __instance.MyPhysics.body.velocity = Vector2.zero;
+                }
+            }
+            else
+            {
+                __instance.moveable = true;
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(ChatController), nameof(ChatController.SendChat))]
+    public static class SNSChatPatch
+    {
+        private static float lastUsed = 0f;
+        private const float cooldown = 2f;
+
+        [HarmonyPostfix]
+        public static void Postfix(ChatController __instance)
+        {
+            if (!SNSConfig.Enabled)
+                return;
+
+            if (__instance == null)
+                return;
+
+            if (PlayerControl.LocalPlayer == null)
+                return;
+
+            string msg = __instance.TextArea != null ? __instance.TextArea.text.Trim().ToLower() : "";
+
+            if (string.IsNullOrEmpty(msg))
+                return;
+
+            if (msg == SNSConfig.Command)
+            {
+                if (Time.time - lastUsed < cooldown)
+                    return;
+
+                lastUsed = Time.time;
+
+                __instance.AddChat(
+                    PlayerControl.LocalPlayer,
+                    SNSConfig.ModeMessage
+                );
+            }
         }
     }
 }
